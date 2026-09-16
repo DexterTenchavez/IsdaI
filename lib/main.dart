@@ -3,6 +3,7 @@ import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'screens/camera_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const IsdaAIApp());
@@ -17,7 +18,7 @@ class IsdaAIApp extends StatelessWidget {
       title: 'IsdaAI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const MainNavigationWrapper(),
+      home: const SplashScreen(home: MainNavigationWrapper()),
     );
   }
 }
