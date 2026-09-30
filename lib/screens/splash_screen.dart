@@ -22,18 +22,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => widget.home,
-        ),
-      );
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (context) => widget.home));
     });
   }
 
@@ -47,14 +43,16 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      body: Center(
+      // Removes safe-area padding so the image can paint under the status bar
+      body: SizedBox.expand(
         child: FadeTransition(
           opacity: _animation,
           child: Image.asset(
             'assets/splash/splash.png',
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
+            fit: BoxFit.cover, // fills the entire screen edge-to-edge
+            alignment: Alignment.center,
+            width: double.infinity,
+            height: double.infinity,
           ),
         ),
       ),

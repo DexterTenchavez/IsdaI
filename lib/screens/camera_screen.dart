@@ -3,7 +3,9 @@ import '../theme/app_theme.dart';
 import 'result_screen.dart';
 
 class CameraScreen extends StatelessWidget {
-  const CameraScreen({super.key});
+  final VoidCallback? onClose;
+
+  const CameraScreen({super.key, this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +15,7 @@ class CameraScreen extends StatelessWidget {
         child: Stack(
           children: [
             // Viewfinder placeholder
-            Positioned.fill(
-              child: Container(color: const Color(0xFF101414)),
-            ),
+            Positioned.fill(child: Container(color: const Color(0xFF101414))),
 
             // Framing guide with corner brackets
             Center(
@@ -41,7 +41,13 @@ class CameraScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _circleIconButton(Icons.close_rounded, () => Navigator.pop(context)),
+                  _circleIconButton(Icons.close_rounded, () {
+                    if (onClose != null) {
+                      onClose!();
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  }),
                   _circleIconButton(Icons.flash_off_rounded, () {}),
                 ],
               ),
@@ -57,7 +63,11 @@ class CameraScreen extends StatelessWidget {
                   Text(
                     'Position the eye or gill\nwithin the frame',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 15, height: 1.4),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -109,8 +119,10 @@ class CameraScreen extends StatelessWidget {
   }
 
   Widget _corner(Alignment alignment) {
-    final isTop = alignment == Alignment.topLeft || alignment == Alignment.topRight;
-    final isLeft = alignment == Alignment.topLeft || alignment == Alignment.bottomLeft;
+    final isTop =
+        alignment == Alignment.topLeft || alignment == Alignment.topRight;
+    final isLeft =
+        alignment == Alignment.topLeft || alignment == Alignment.bottomLeft;
     return Align(
       alignment: alignment,
       child: Container(
@@ -118,10 +130,18 @@ class CameraScreen extends StatelessWidget {
         height: 32,
         decoration: BoxDecoration(
           border: Border(
-            top: isTop ? const BorderSide(color: AppColors.primaryLight, width: 4) : BorderSide.none,
-            bottom: !isTop ? const BorderSide(color: AppColors.primaryLight, width: 4) : BorderSide.none,
-            left: isLeft ? const BorderSide(color: AppColors.primaryLight, width: 4) : BorderSide.none,
-            right: !isLeft ? const BorderSide(color: AppColors.primaryLight, width: 4) : BorderSide.none,
+            top: isTop
+                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                : BorderSide.none,
+            bottom: !isTop
+                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                : BorderSide.none,
+            left: isLeft
+                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                : BorderSide.none,
+            right: !isLeft
+                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                : BorderSide.none,
           ),
         ),
       ),
