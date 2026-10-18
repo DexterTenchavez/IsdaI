@@ -1,23 +1,164 @@
+import 'dart:io';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
+import '../services/classifier_service.dart';
 import 'result_screen.dart';
 
-class CameraScreen extends StatelessWidget {
+class CameraScreen extends StatefulWidget {
   final VoidCallback? onClose;
-
   const CameraScreen({super.key, this.onClose});
 
   @override
+  State<CameraScreen> createState() => _CameraScreenState();
+}
+
+class _CameraScreenState extends State<CameraScreen> {
+  CameraController? _controller;
+  final ClassifierService _classifier = ClassifierService();
+  final ImagePicker _picker = ImagePicker();
+  bool _isProcessing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCamera();
+    _classifier.loadModel();
+  }
+
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    if (cameras.isEmpty) return;
+
+    _controller = CameraController(
+      cameras[0],
+      ResolutionPreset.medium,
+      enableAudio: false,
+    );
+    await _controller!.initialize();
+    if (mounted) setState(() {});
+  }
+
+  // --- CAPTURE PHOTO AND RUN AI ---
+  Future<void> _takePicture() async {
+    if (_controller == null ||
+        !_controller!.value.isInitialized ||
+        _isProcessing)
+      return;
+
+    setState(() => _isProcessing = true);
+
+    try {
+      final XFile file = await _controller!.takePicture();
+      final bytes = await file.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(bytes)!;
+
+      final result = await _classifier.classifyImage(decodedImage);
+
+      if (mounted) {
+        if (result != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResultScreen(
+                label: result['label'],
+                confidence: result['confidence'],
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to analyze image.")),
+          );
+        }
+      }
+    } catch (e) {
+      print(e);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  // --- PICK FROM GALLERY AND RUN AI ---
+  Future<void> _pickFromGallery() async {
+    if (_isProcessing) return;
+
+    try {
+      // 1. Pause the camera preview to release the camera hardware
+      //    This prevents the "Image picker is already active" conflict.
+      if (_controller != null && _controller!.value.isInitialized) {
+        await _controller!.pausePreview();
+      }
+
+      // 2. Open the gallery
+      final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
+
+      // 3. Resume the camera preview after the gallery closes
+      if (_controller != null && _controller!.value.isInitialized) {
+        await _controller!.resumePreview();
+      }
+
+      if (file == null) return;
+
+      setState(() => _isProcessing = true);
+
+      final bytes = await file.readAsBytes();
+      final img.Image decodedImage = img.decodeImage(bytes)!;
+
+      final result = await _classifier.classifyImage(decodedImage);
+
+      if (mounted) {
+        if (result != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ResultScreen(
+                label: result['label'],
+                confidence: result['confidence'],
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to analyze image.")),
+          );
+        }
+      }
+    } catch (e) {
+      print(e);
+      // Make sure camera resumes even if something fails
+      if (_controller != null && _controller!.value.isInitialized) {
+        await _controller!.resumePreview();
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _classifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_controller == null || !_controller!.value.isInitialized) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Stack(
           children: [
-            // Viewfinder placeholder
-            Positioned.fill(child: Container(color: const Color(0xFF101414))),
-
-            // Framing guide with corner brackets
+            Positioned.fill(child: CameraPreview(_controller!)),
             Center(
               child: SizedBox(
                 width: 260,
@@ -32,8 +173,6 @@ class CameraScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Top bar
             Positioned(
               top: 8,
               left: 8,
@@ -42,38 +181,15 @@ class CameraScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _circleIconButton(Icons.close_rounded, () {
-                    if (onClose != null) {
-                      onClose!();
-                    } else {
+                    if (widget.onClose != null)
+                      widget.onClose!();
+                    else
                       Navigator.pop(context);
-                    }
                   }),
                   _circleIconButton(Icons.flash_off_rounded, () {}),
                 ],
               ),
             ),
-
-            // Instruction text
-            Positioned(
-              top: 90,
-              left: 0,
-              right: 0,
-              child: Column(
-                children: [
-                  Text(
-                    'Position the eye or gill\nwithin the frame',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom controls
             Positioned(
               bottom: 30,
               left: 0,
@@ -81,14 +197,13 @@ class CameraScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _circleIconButton(Icons.photo_library_rounded, () {}),
+                  // GALLERY BUTTON
+                  _circleIconButton(
+                    Icons.photo_library_rounded,
+                    _pickFromGallery,
+                  ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ResultScreen()),
-                      );
-                    },
+                    onTap: _takePicture,
                     child: Container(
                       height: 76,
                       width: 76,
@@ -97,14 +212,18 @@ class CameraScreen extends StatelessWidget {
                         border: Border.all(color: Colors.white, width: 4),
                       ),
                       child: Center(
-                        child: Container(
-                          height: 60,
-                          width: 60,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primaryLight,
-                          ),
-                        ),
+                        child: _isProcessing
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Container(
+                                height: 60,
+                                width: 60,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppColors.primaryLight,
+                                ),
+                              ),
                       ),
                     ),
                   ),

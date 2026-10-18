@@ -20,8 +20,11 @@ class SettingsScreen extends StatelessWidget {
           _tile(Icons.storage_rounded, 'Storage', 'Manage saved scans'),
           const SizedBox(height: 20),
           _sectionLabel('About'),
-          _tile(Icons.info_outline_rounded, 'About IsdaAI', 'App info & version'),
-          _tile(Icons.privacy_tip_outlined, 'Privacy', 'How your data is handled'),
+          _tile(
+            Icons.info_outline_rounded,
+            'About IsdaAI',
+            'App info & version',
+          ),
         ],
       ),
     );
@@ -62,7 +65,11 @@ class SettingsScreen extends StatelessWidget {
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textMuted),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          size: 20,
+          color: AppColors.textMuted,
+        ),
         onTap: () {},
       ),
     );

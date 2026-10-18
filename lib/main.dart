@@ -54,7 +54,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(index: _currentIndex, children: screens),
+      body: screens[_currentIndex],
       bottomNavigationBar: showNavBar
           ? AppNavBar(currentIndex: _currentIndex, onTap: _onTap)
           : null,
