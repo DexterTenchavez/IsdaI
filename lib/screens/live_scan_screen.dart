@@ -15,10 +15,12 @@ class LiveScanScreen extends StatefulWidget {
 class _LiveScanScreenState extends State<LiveScanScreen> {
   CameraController? _controller;
   final ClassifierService _classifier = ClassifierService();
+
   Timer? _throttleTimer;
 
-  String _currentLabel = 'Detecting...';
+  String _currentLabel = '';
   double _currentConfidence = 0.0;
+
   bool _isProcessing = false;
   bool _canProcess = false;
 
@@ -43,10 +45,7 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
 
     if (mounted) {
       setState(() {});
-      // Start the image stream
       _controller!.startImageStream(_onFrame);
-
-      // Throttle to 500ms
       _throttleTimer = Timer.periodic(const Duration(milliseconds: 500), (
         timer,
       ) {
@@ -102,17 +101,60 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
       );
     }
 
+    // Colors based on result
     final isFresh = _currentLabel == 'Fresh';
     final boxColor = isFresh
-        ? AppColors.success
-        : (_currentLabel == 'Stale' ? AppColors.danger : Colors.grey);
+        ? const Color(0xFF00E676) // Bright Green
+        : (_currentLabel == 'Stale'
+              ? const Color(0xFFFF1744)
+              : Colors.transparent); // Bright Red
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
         child: Stack(
           children: [
+            // Live Camera Preview
             Positioned.fill(child: CameraPreview(_controller!)),
+
+            // The Dynamic Object Detection Box (Center of screen)
+            if (_currentLabel.isNotEmpty)
+              Center(
+                child: Container(
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: boxColor, width: 3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Label tag (Top Left)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          color: boxColor,
+                          child: Text(
+                            '$_currentLabel ${(_currentConfidence * 100).toStringAsFixed(0)}%',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Static White Framing Guide (Always visible)
             Center(
               child: SizedBox(
                 width: 260,
@@ -127,6 +169,8 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                 ),
               ),
             ),
+
+            // Top Bar: Close button + LIVE indicator
             Positioned(
               top: 8,
               left: 8,
@@ -156,45 +200,47 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                 ],
               ),
             ),
-            if (_currentLabel != 'Detecting...')
-              Positioned(
-                bottom: 100,
-                left: 40,
-                right: 40,
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: boxColor.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: boxColor.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _currentLabel,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Confidence: ${(_currentConfidence * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+
+            // Instruction Text
+            const Positioned(
+              top: 90,
+              left: 0,
+              right: 0,
+              child: Text(
+                'Keep the fish inside the frame.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+            ),
+
+            // Stop Detection Button
+            Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: _handleClose,
+                  icon: const Icon(Icons.stop_rounded),
+                  label: const Text('Stop Detection'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.danger,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -214,16 +260,16 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
         decoration: BoxDecoration(
           border: Border(
             top: isTop
-                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
             bottom: !isTop
-                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
             left: isLeft
-                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
             right: !isLeft
-                ? const BorderSide(color: AppColors.primaryLight, width: 4)
+                ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
           ),
         ),
