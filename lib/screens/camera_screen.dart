@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
@@ -21,11 +20,13 @@ class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
 
+  late final Future<void> _modelFuture;
+
   @override
   void initState() {
     super.initState();
     _initializeCamera();
-    _classifier.loadModel();
+    _modelFuture = _classifier.loadModel();
   }
 
   Future<void> _initializeCamera() async {
@@ -41,94 +42,87 @@ class _CameraScreenState extends State<CameraScreen> {
     if (mounted) setState(() {});
   }
 
-  // --- CAPTURE PHOTO AND RUN AI ---
+  void _showMessage(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 6)),
+    );
+  }
+
+  Future<void> _analyzeFile(XFile file) async {
+    await _modelFuture;
+
+    if (!_classifier.isModelLoaded) {
+      _showMessage(
+        'AI model failed to load: ${_classifier.loadError ?? "unknown error"}',
+      );
+      return;
+    }
+
+    final bytes = await file.readAsBytes();
+    final img.Image? decoded = img.decodeImage(bytes);
+    if (decoded == null) {
+      _showMessage('Could not read that image.');
+      return;
+    }
+
+    final img.Image upright = img.bakeOrientation(decoded);
+    final result = await _classifier.classifyImage(upright);
+
+    if (!mounted) return;
+    if (result != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultScreen(result: result, imagePath: file.path),
+        ),
+      );
+    } else {
+      _showMessage('Failed to analyze image.');
+    }
+  }
+
   Future<void> _takePicture() async {
     if (_controller == null ||
         !_controller!.value.isInitialized ||
-        _isProcessing)
+        _isProcessing) {
       return;
+    }
 
     setState(() => _isProcessing = true);
 
     try {
       final XFile file = await _controller!.takePicture();
-      final bytes = await file.readAsBytes();
-      final img.Image decodedImage = img.decodeImage(bytes)!;
-
-      final result = await _classifier.classifyImage(decodedImage);
-
-      if (mounted) {
-        if (result != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ResultScreen(
-                label: result['label'],
-                confidence: result['confidence'],
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to analyze image.")),
-          );
-        }
-      }
-    } catch (e) {
-      print(e);
+      await _analyzeFile(file);
+    } catch (e, st) {
+      print('Take picture error: $e\n$st');
+      _showMessage('Something went wrong: $e');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
   }
 
-  // --- PICK FROM GALLERY AND RUN AI ---
   Future<void> _pickFromGallery() async {
     if (_isProcessing) return;
 
     try {
-      // 1. Pause the camera preview to release the camera hardware
-      //    This prevents the "Image picker is already active" conflict.
       if (_controller != null && _controller!.value.isInitialized) {
         await _controller!.pausePreview();
       }
 
-      // 2. Open the gallery
       final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
 
-      // 3. Resume the camera preview after the gallery closes
       if (_controller != null && _controller!.value.isInitialized) {
         await _controller!.resumePreview();
       }
 
       if (file == null) return;
 
-      setState(() => _isProcessing = true);
-
-      final bytes = await file.readAsBytes();
-      final img.Image decodedImage = img.decodeImage(bytes)!;
-
-      final result = await _classifier.classifyImage(decodedImage);
-
-      if (mounted) {
-        if (result != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ResultScreen(
-                label: result['label'],
-                confidence: result['confidence'],
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to analyze image.")),
-          );
-        }
-      }
-    } catch (e) {
-      print(e);
-      // Make sure camera resumes even if something fails
+      if (mounted) setState(() => _isProcessing = true);
+      await _analyzeFile(file);
+    } catch (e, st) {
+      print('Gallery error: $e\n$st');
+      _showMessage('Something went wrong: $e');
       if (_controller != null && _controller!.value.isInitialized) {
         await _controller!.resumePreview();
       }
@@ -181,13 +175,35 @@ class _CameraScreenState extends State<CameraScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _circleIconButton(Icons.close_rounded, () {
-                    if (widget.onClose != null)
+                    if (widget.onClose != null) {
                       widget.onClose!();
-                    else
+                    } else {
                       Navigator.pop(context);
+                    }
                   }),
                   _circleIconButton(Icons.flash_off_rounded, () {}),
                 ],
+              ),
+            ),
+            Positioned(
+              bottom: 124,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'One fish at a time  •  show the eye or gills',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
               ),
             ),
             Positioned(
@@ -197,7 +213,6 @@ class _CameraScreenState extends State<CameraScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // GALLERY BUTTON
                   _circleIconButton(
                     Icons.photo_library_rounded,
                     _pickFromGallery,

@@ -1,0 +1,14 @@
+Andohaw_Fresh
+Andohaw_Stale
+Bangus_Fresh
+Bangus_Stale
+Carabalyas_Fresh
+Carabalyas_Stale
+Multiple_Fish
+Not_Fish
+Silay_Fresh
+Silay_Stale
+Tilapia_Fresh
+Tilapia_Stale
+Timbungan_Fresh
+Timbungan_Stale

@@ -20,10 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.isda_development"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,11 +29,28 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // If both tflite_flutter and ultralytics_yolo ship libtensorflowlite_jni.so,
+    // keep the first one found instead of failing with a duplicate-file error.
+    packaging {
+        jniLibs {
+            pickFirsts += "**/libtensorflowlite_jni.so"
+            useLegacyPackaging = true
+        }
+    }
+}
+
+// Fix: ultralytics_yolo (LiteRT 2.x) and tflite_flutter both ship org.tensorflow.lite.* classes.
+// LiteRT 2.x already contains them, so drop the old standalone Java modules.
+// tflite_flutter only uses the native .so through FFI, so it doesn't need these.
+configurations.all {
+    exclude(group = "com.google.ai.edge.litert", module = "litert-api")
+    exclude(group = "org.tensorflow", module = "tensorflow-lite")
+    exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
 }
 
 flutter {

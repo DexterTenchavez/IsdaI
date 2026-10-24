@@ -32,14 +32,18 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   # Camera and AI packages
+  flutter_onnxruntime: ^1.7.0
   camera: ^0.11.0+2
-  tflite_flutter: ^0.12.1
+  tflite_flutter: ^0.11.0 
   image: ^4.2.0
   path_provider: ^2.1.3
   image_picker: ^1.1.2
+  ultralytics_yolo: ^0.6.15
 
 flutter:
   uses-material-design: true
   assets:
     - assets/splash/
-    - assets/models/isdaai_mobilenetv2.tflite
+    - assets/models/yolo_fish_detector.tflite
+    - assets/models/isdaai_14classes.onnx
+    - assets/models/labels.txt
