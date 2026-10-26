@@ -31,13 +31,23 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
   /// If the boxes look shifted or stretched, try 9 / 16 or 4 / 3 here.
   static const double _cameraAspect = 3 / 4;
 
+  // ====== MULTI-FISH SETTINGS ======
+  /// How much two boxes may overlap before one is removed.
+  /// Higher = keeps more overlapping fish (good for piles).
+  /// If you see double boxes on the same fish, lower it (e.g. 0.5).
+  static const double _iouThreshold = 0.6;
+
+  /// Max number of boxes shown at once.
+  static const int _maxItems = 100;
+  // =================================
+
   final YOLOViewController _controller = YOLOViewController();
 
   // Latest detections, drawn by our own painter
   final ValueNotifier<List<YOLOResult>> _detections =
       ValueNotifier<List<YOLOResult>>(const []);
 
-  double _threshold = 0.45; // raise to reduce clutter, lower to detect more
+  double _threshold = 0.25; // raise to reduce clutter, lower to detect more
   bool _torchOn = false;
   int _frames = 0;
   Timer? _initTimer;
@@ -59,7 +69,11 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
         try {
           // hide the plugin's own (blue, non-recolorable) boxes; we draw ours
           await _controller.setShowOverlays(false);
-          await _controller.setConfidenceThreshold(_threshold);
+          await _controller.setThresholds(
+            confidenceThreshold: _threshold,
+            iouThreshold: _iouThreshold,
+            numItemsThreshold: _maxItems,
+          );
         } catch (e) {
           debugPrint('Setup error: $e');
         }

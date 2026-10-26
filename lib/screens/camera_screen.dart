@@ -19,6 +19,7 @@ class _CameraScreenState extends State<CameraScreen> {
   final ClassifierService _classifier = ClassifierService();
   final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
+  bool _flashOn = false;
 
   late final Future<void> _modelFuture;
 
@@ -39,6 +40,10 @@ class _CameraScreenState extends State<CameraScreen> {
       enableAudio: false,
     );
     await _controller!.initialize();
+    // Start with the flash off
+    try {
+      await _controller!.setFlashMode(FlashMode.off);
+    } catch (_) {}
     if (mounted) setState(() {});
   }
 
@@ -47,6 +52,21 @@ class _CameraScreenState extends State<CameraScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(text), duration: const Duration(seconds: 6)),
     );
+  }
+
+  /// Flash works as a torch: it stays on while you frame the fish and
+  /// is still lit when the photo is taken.
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    final next = !_flashOn;
+    try {
+      await _controller!.setFlashMode(next ? FlashMode.torch : FlashMode.off);
+      if (mounted) setState(() => _flashOn = next);
+    } catch (e) {
+      print('Flash error: $e');
+      _showMessage('Flash is not available on this device.');
+    }
   }
 
   Future<void> _analyzeFile(XFile file) async {
@@ -181,7 +201,11 @@ class _CameraScreenState extends State<CameraScreen> {
                       Navigator.pop(context);
                     }
                   }),
-                  _circleIconButton(Icons.flash_off_rounded, () {}),
+                  _circleIconButton(
+                    _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                    _toggleFlash,
+                    active: _flashOn,
+                  ),
                 ],
               ),
             ),
@@ -242,7 +266,9 @@ class _CameraScreenState extends State<CameraScreen> {
                       ),
                     ),
                   ),
-                  _circleIconButton(Icons.cameraswitch_rounded, () {}),
+                  // Empty spacer (same size as a button) keeps the shutter
+                  // centered now that the camera switch button is removed.
+                  const SizedBox(width: 46, height: 46),
                 ],
               ),
             ),
@@ -282,13 +308,19 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  Widget _circleIconButton(IconData icon, VoidCallback onTap) {
+  Widget _circleIconButton(
+    IconData icon,
+    VoidCallback onTap, {
+    bool active = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.12),
+          color: active
+              ? AppColors.accent.withValues(alpha: 0.85)
+              : Colors.white.withValues(alpha: 0.12),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: Colors.white, size: 22),

@@ -48,7 +48,6 @@ android {
 // LiteRT 2.x already contains them, so drop the old standalone Java modules.
 // tflite_flutter only uses the native .so through FFI, so it doesn't need these.
 configurations.all {
-    exclude(group = "com.google.ai.edge.litert", module = "litert-api")
     exclude(group = "org.tensorflow", module = "tensorflow-lite")
     exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
 }

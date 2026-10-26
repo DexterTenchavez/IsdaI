@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -8,10 +9,34 @@ class AppNavBar extends StatelessWidget {
 
   const AppNavBar({super.key, required this.currentIndex, required this.onTap});
 
+  /// Flutter has no official "which navigation mode?" API, so we read the
+  /// system bottom inset instead:
+  ///   - 3-button bar (Back / Home / Recents): about 48dp
+  ///   - gesture pill: about 16-24dp
+  ///   - no inset (older Android, not edge-to-edge): 0
+  static const double _threeButtonInset = 32;
+
   @override
   Widget build(BuildContext context) {
+    // viewPadding = the real system bars (not changed by Scaffold/keyboard)
+    final view = MediaQuery.viewPaddingOf(context);
+    final threeButton = view.bottom >= _threeButtonInset;
+
+    // 3-button: sit fully above the buttons with a clear gap.
+    // Gesture / none: hug the bottom, just above the gesture pill.
+    final bottomGap = threeButton
+        ? view.bottom + 10
+        : math.max(view.bottom + 6, 18.0);
+
+    // In landscape the 3-button bar can move to the side, so respect that too.
+    final leftGap = 20.0 + view.left;
+    final rightGap = 20.0 + view.right;
+
+    // A bit more solid in 3-button mode so it doesn't blur into the buttons.
+    final glassAlpha = threeButton ? 0.78 : 0.55;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+      padding: EdgeInsets.fromLTRB(leftGap, 0, rightGap, bottomGap),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
@@ -19,7 +44,7 @@ class AppNavBar extends StatelessWidget {
           child: Container(
             height: 68,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.55),
+              color: Colors.white.withValues(alpha: glassAlpha),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.6),
