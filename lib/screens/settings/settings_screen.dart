@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../../services/language/app_language.dart';
 import '../../services/settings/theme_controller.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/day_night_toggle.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
 import 'storage_screen.dart';
 
-/// One row in the bottom-sheet picker (used for Language and Theme).
+/// One row in the bottom-sheet picker (used for Language).
 class _Choice {
   final String label;
   final IconData? icon;
@@ -95,22 +96,8 @@ class SettingsScreen extends StatelessWidget {
     ]);
   }
 
-  void _pickTheme(BuildContext context) {
-    final controller = ThemeController.instance;
-    _showSheet(context, context.tr('theme_choose'), [
-      _Choice(
-        label: context.tr('theme_light'),
-        icon: Icons.light_mode_rounded,
-        selected: !controller.isDark,
-        onSelect: () => controller.set(ThemeMode.light),
-      ),
-      _Choice(
-        label: context.tr('theme_dark'),
-        icon: Icons.dark_mode_rounded,
-        selected: controller.isDark,
-        onSelect: () => controller.set(ThemeMode.dark),
-      ),
-    ]);
+  void _setDark(bool dark) {
+    ThemeController.instance.set(dark ? ThemeMode.dark : ThemeMode.light);
   }
 
   void _showAbout(BuildContext context) {
@@ -149,9 +136,9 @@ class SettingsScreen extends StatelessWidget {
           elevation: 0,
         ),
         body: ListenableBuilder(
-          // refresh the Theme subtitle right after a change
           listenable: ThemeController.instance,
           builder: (context, _) {
+            final isDark = ThemeController.instance.isDark;
             return ListView(
               padding: EdgeInsets.fromLTRB(20, 12, 20, bottomReserved + 20),
               children: [
@@ -165,16 +152,12 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 _tile(
                   context,
-                  ThemeController.instance.isDark
-                      ? Icons.dark_mode_rounded
-                      : Icons.light_mode_rounded,
+                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                   context.tr('set_theme'),
-                  context.tr(
-                    ThemeController.instance.isDark
-                        ? 'theme_dark'
-                        : 'theme_light',
-                  ),
-                  onTap: () => _pickTheme(context),
+                  context.tr(isDark ? 'theme_dark' : 'theme_light'),
+                  // The whole row toggles too, not just the switch
+                  onTap: () => _setDark(!isDark),
+                  trailing: DayNightToggle(isDark: isDark, onChanged: _setDark),
                 ),
                 const SizedBox(height: 20),
                 _sectionLabel(context.tr('sec_data')),
@@ -236,6 +219,7 @@ class SettingsScreen extends StatelessWidget {
     String title,
     String subtitle, {
     VoidCallback? onTap,
+    Widget? trailing,
   }) {
     final pal = context.pal;
     return Container(
@@ -263,7 +247,9 @@ class SettingsScreen extends StatelessWidget {
           subtitle,
           style: TextStyle(fontSize: 12, color: pal.muted),
         ),
-        trailing: Icon(Icons.chevron_right_rounded, size: 20, color: pal.muted),
+        trailing:
+            trailing ??
+            Icon(Icons.chevron_right_rounded, size: 20, color: pal.muted),
         onTap: onTap ?? () {},
       ),
     );

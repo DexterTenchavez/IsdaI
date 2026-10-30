@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'liquid_glass.dart';
 
 class AppNavBar extends StatelessWidget {
   final int currentIndex;
@@ -15,126 +15,149 @@ class AppNavBar extends StatelessWidget {
   ///   - gesture pill: about 16-24dp
   ///   - no inset (older Android, not edge-to-edge): 0
   static const double _threeButtonInset = 32;
+  static const double _barHeight = 68;
+  static const int _itemCount = 4;
 
   @override
   Widget build(BuildContext context) {
-    // viewPadding = the real system bars (not changed by Scaffold/keyboard)
     final view = MediaQuery.viewPaddingOf(context);
     final threeButton = view.bottom >= _threeButtonInset;
 
-    // 3-button: sit fully above the buttons with a clear gap.
-    // Gesture / none: hug the bottom, just above the gesture pill.
     final bottomGap = threeButton
         ? view.bottom + 10
         : math.max(view.bottom + 6, 18.0);
 
-    // In landscape the 3-button bar can move to the side, so respect that too.
     final leftGap = 20.0 + view.left;
     final rightGap = 20.0 + view.right;
 
-    // A bit more solid in 3-button mode so it doesn't blur into the buttons.
-    final glassAlpha = threeButton ? 0.78 : 0.55;
     final pal = context.pal;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(leftGap, 0, rightGap, bottomGap),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            height: 68,
-            decoration: BoxDecoration(
-              color: pal.navGlass.withValues(alpha: glassAlpha),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: pal.navBorder, width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primaryDark.withValues(alpha: 0.12),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: LiquidGlass(
+        height: _barHeight,
+        radius: 34,
+        tint: pal.navGlass,
+        blur: 16,
+        // A bit more solid in 3-button mode so it doesn't blur into the buttons
+        opacity: threeButton ? 1.3 : 1.0,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final slotW = constraints.maxWidth / _itemCount;
+            const inset = 6.0;
+
+            return Stack(
               children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  selected: currentIndex == 0,
-                  onTap: () => onTap(0),
+                // Liquid "lens" that slides (with a little overshoot) to the
+                // selected item.
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 520),
+                  curve: Curves.easeOutBack,
+                  left: currentIndex * slotW + inset,
+                  top: 7,
+                  width: slotW - inset * 2,
+                  height: _barHeight - 14,
+                  child: const _LensPill(),
                 ),
-                _NavItem(
-                  icon: Icons.camera_alt_rounded,
-                  selected: currentIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-                _LiveNavItem(
-                  selected: currentIndex == 2,
-                  onTap: () => onTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.settings_rounded,
-                  selected: currentIndex == 3,
-                  onTap: () => onTap(3),
+                Row(
+                  children: [
+                    _slot(
+                      child: _icon(context, Icons.home_rounded, 0),
+                      index: 0,
+                    ),
+                    _slot(
+                      child: _icon(context, Icons.camera_alt_rounded, 1),
+                      index: 1,
+                    ),
+                    _slot(
+                      child: _LiveIcon(selected: currentIndex == 2),
+                      index: 2,
+                    ),
+                    _slot(
+                      child: _icon(context, Icons.settings_rounded, 3),
+                      index: 3,
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _slot({required Widget child, required int index}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onTap(index),
+        behavior: HitTestBehavior.opaque,
+        child: Center(child: child),
+      ),
+    );
+  }
+
+  Widget _icon(BuildContext context, IconData icon, int index) {
+    final pal = context.pal;
+    final selected = currentIndex == index;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: selected ? 1 : 0),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      builder: (context, t, _) => Transform.scale(
+        scale: 1 + 0.12 * t,
+        child: Icon(
+          icon,
+          size: 26,
+          color: Color.lerp(pal.muted, pal.link, t.clamp(0.0, 1.0)),
         ),
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
+/// The glass bubble behind the selected icon.
+class _LensPill extends StatelessWidget {
+  const _LensPill();
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected
-              ? context.pal.link.withValues(alpha: 0.16)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const r = 26.0;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(r),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: isDark ? 0.22 : 0.55),
+            Colors.white.withValues(alpha: isDark ? 0.06 : 0.16),
+          ],
         ),
-        child: Icon(
-          icon,
-          size: 26,
-          color: selected ? context.pal.link : context.pal.muted,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.10),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
+      child: const CustomPaint(foregroundPainter: LiquidRimPainter(radius: r)),
     );
   }
 }
 
 /// Live item with a video-camera icon + pulsing "LIVE" badge.
-class _LiveNavItem extends StatefulWidget {
+class _LiveIcon extends StatefulWidget {
   final bool selected;
-  final VoidCallback onTap;
-
-  const _LiveNavItem({required this.selected, required this.onTap});
+  const _LiveIcon({required this.selected});
 
   @override
-  State<_LiveNavItem> createState() => _LiveNavItemState();
+  State<_LiveIcon> createState() => _LiveIconState();
 }
 
-class _LiveNavItemState extends State<_LiveNavItem>
+class _LiveIconState extends State<_LiveIcon>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulse;
 
@@ -155,65 +178,53 @@ class _LiveNavItemState extends State<_LiveNavItem>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.selected ? context.pal.link : context.pal.muted;
+    final pal = context.pal;
+    final color = widget.selected ? pal.link : pal.muted;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: widget.selected
-              ? context.pal.link.withValues(alpha: 0.16)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(18),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        AnimatedScale(
+          scale: widget.selected ? 1.12 : 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutBack,
+          child: Icon(Icons.videocam_rounded, size: 26, color: color),
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Icon(Icons.videocam_rounded, size: 26, color: color),
-            Positioned(
-              top: -6,
-              right: -14,
-              child: AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, _) {
-                  final glow = 4 + (_pulse.value * 6);
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 1,
+        Positioned(
+          top: -6,
+          right: -14,
+          child: AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, _) {
+              final glow = 4 + (_pulse.value * 6);
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.danger,
+                  borderRadius: BorderRadius.circular(5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.danger.withValues(alpha: 0.6),
+                      blurRadius: glow,
+                      spreadRadius: 0.5,
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColors.danger,
-                      borderRadius: BorderRadius.circular(5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.danger.withValues(alpha: 0.6),
-                          blurRadius: glow,
-                          spreadRadius: 0.5,
-                        ),
-                      ],
-                    ),
-                    child: const Text(
-                      'LIVE',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 7,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ],
+                ),
+                child: const Text(
+                  'LIVE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 7,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 }
