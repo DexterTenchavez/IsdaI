@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/scan_record.dart';
-import '../services/app_language.dart';
-import '../services/classifier_service.dart';
-import '../services/date_label.dart';
-import '../services/history_database.dart';
-import '../theme/app_theme.dart';
-import 'recipe_recommendation_screen.dart';
+import '../../models/scan_record.dart';
+import '../../services/language/app_language.dart';
+import '../../services/ai/classifier_service.dart';
+import '../../services/language/date_label.dart';
+import '../../services/storage/history_database.dart';
+import '../../theme/app_theme.dart';
+import '../recipes/recipe_recommendation_screen.dart';
 
 /// Shows a scan result. It is used in two ways:
 ///  - right after a scan (record == null): has a "Save to history" button

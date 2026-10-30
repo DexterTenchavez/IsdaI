@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../services/app_language.dart';
-import '../theme/app_theme.dart';
-import '../widgets/underwater_background.dart';
+import '../../services/language/app_language.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/underwater_background.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Switches tabs in MainNavigationWrapper:

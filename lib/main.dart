@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
-import 'services/app_language.dart';
-import 'services/theme_controller.dart';
-import 'screens/home_screen.dart';
-import 'screens/camera_screen.dart';
-import 'screens/live_scan_screen.dart';
-import 'screens/settings_screen.dart';
-import 'screens/splash_screen.dart';
+import 'services/language/app_language.dart';
+import 'services/settings/theme_controller.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/scan/camera_screen.dart';
+import 'screens/scan/live_detection_screen.dart';
+import 'screens/settings/settings_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'widgets/app_navbar.dart';
 
 Future<void> main() async {
@@ -113,7 +113,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     final screens = [
       HomeScreen(onNavigate: _onTap),
       CameraScreen(onClose: () => _onTap(0)),
-      LiveScanScreen(onClose: () => _onTap(0)),
+      LiveDetectionScreen(onClose: () => _onTap(0)),
       const SettingsScreen(),
     ];
 

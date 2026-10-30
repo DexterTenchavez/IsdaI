@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/scan_record.dart';
-import '../services/app_language.dart';
-import '../services/date_label.dart';
-import '../services/history_database.dart';
-import '../theme/app_theme.dart';
-import '../widgets/underwater_background.dart';
-import 'result_screen.dart';
+import '../../models/scan_record.dart';
+import '../../services/language/app_language.dart';
+import '../../services/language/date_label.dart';
+import '../../services/storage/history_database.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/underwater_background.dart';
+import '../scan/result_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});

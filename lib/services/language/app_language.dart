@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/recipe.dart';
+import '../../models/recipe.dart';
 import 'history_strings.dart';
 
 /// Languages the app supports (SRS FR-27: English or Tagalog).
@@ -111,7 +111,7 @@ const Map<String, String> _en = {
   'quick_actions': 'Quick actions',
   'act_scan': 'Scan a photo',
   'act_scan_hint': 'Take or pick a picture',
-  'act_live': 'Live scan',
+  'act_live': 'Live detection',
   'act_live_hint': 'Detect fish in real time',
   'act_history': 'History',
   'act_history_hint': 'Your past results',
@@ -234,7 +234,7 @@ const Map<String, String> _tl = {
   'quick_actions': 'Mabilisang aksyon',
   'act_scan': 'Mag-scan ng litrato',
   'act_scan_hint': 'Kumuha o pumili ng larawan',
-  'act_live': 'Live scan',
+  'act_live': 'Live detection',
   'act_live_hint': 'Tuklasin ang isda nang real time',
   'act_history': 'Kasaysayan',
   'act_history_hint': 'Mga nakaraang resulta mo',

@@ -1,4 +1,4 @@
-import '../services/classifier_service.dart';
+import '../services/ai/classifier_service.dart';
 
 /// One saved scan (a row in the SQLite history table).
 class ScanRecord {

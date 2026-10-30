@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import '../models/scan_record.dart';
-import 'classifier_service.dart';
+import '../../models/scan_record.dart';
+import '../ai/classifier_service.dart';
 
 /// Local scan history (SRS FR-21 to FR-26). Everything stays on the device:
 /// results go in a SQLite table, photos are copied into the app's own folder.

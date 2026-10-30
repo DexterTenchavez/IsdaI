@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/recipe.dart';
-import '../services/app_language.dart';
-import '../services/recipe_store.dart';
-import '../theme/app_theme.dart';
-import '../widgets/underwater_background.dart';
+import '../../models/recipe.dart';
+import '../../services/language/app_language.dart';
+import '../../services/storage/recipe_store.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/underwater_background.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final Recipe recipe;

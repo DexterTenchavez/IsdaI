@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/app_language.dart';
-import '../services/theme_controller.dart';
-import '../theme/app_theme.dart';
-import '../widgets/underwater_background.dart';
-import 'history_screen.dart';
+import '../../services/language/app_language.dart';
+import '../../services/settings/theme_controller.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/underwater_background.dart';
+import '../history/history_screen.dart';
+import 'storage_screen.dart';
 
 /// One row in the bottom-sheet picker (used for Language and Theme).
 class _Choice {
@@ -187,6 +188,10 @@ class SettingsScreen extends StatelessWidget {
                   Icons.storage_rounded,
                   context.tr('set_storage'),
                   context.tr('set_storage_sub'),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const StorageScreen()),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 _sectionLabel(context.tr('sec_about')),

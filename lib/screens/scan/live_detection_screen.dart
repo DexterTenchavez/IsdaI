@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
-import '../services/app_language.dart';
-import '../theme/app_theme.dart';
+import '../../services/language/app_language.dart';
+import '../../theme/app_theme.dart';
 
 // ====== CHANGE COLORS HERE ======
 const Color kFreshColor = Color(0xFF22C55E); // green
@@ -19,15 +19,15 @@ bool isFreshResult(YOLOResult r) {
   return r.classIndex == 0;
 }
 
-class LiveScanScreen extends StatefulWidget {
+class LiveDetectionScreen extends StatefulWidget {
   final VoidCallback? onClose;
-  const LiveScanScreen({super.key, this.onClose});
+  const LiveDetectionScreen({super.key, this.onClose});
 
   @override
-  State<LiveScanScreen> createState() => _LiveScanScreenState();
+  State<LiveDetectionScreen> createState() => _LiveDetectionScreenState();
 }
 
-class _LiveScanScreenState extends State<LiveScanScreen> {
+class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   /// Width / height of the camera frame as shown in portrait.
   /// If the boxes look shifted or stretched, try 9 / 16 or 4 / 3 here.
   static const double _cameraAspect = 3 / 4;

@@ -2,9 +2,9 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
-import '../theme/app_theme.dart';
-import '../services/app_language.dart';
-import '../services/classifier_service.dart';
+import '../../theme/app_theme.dart';
+import '../../services/language/app_language.dart';
+import '../../services/ai/classifier_service.dart';
 import 'result_screen.dart';
 
 class CameraScreen extends StatefulWidget {
