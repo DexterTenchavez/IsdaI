@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/classifier_service.dart';
 import '../theme/app_theme.dart';
+import 'recipe_recommendation_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   final ClassificationResult result;
@@ -10,6 +11,8 @@ class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key, required this.result, this.imagePath});
 
   bool get _isOk => result.status == ScanStatus.ok;
+  bool get _isFreshOk => _isOk && result.isFresh;
+  bool get _isStaleOk => _isOk && !result.isFresh;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +33,11 @@ class ResultScreen extends StatelessWidget {
             ],
             _isOk ? _verdictCard() : _problemCard(),
             const SizedBox(height: 16),
-            if (_isOk) ...[_tipsCard(), const SizedBox(height: 16)],
+            if (_isStaleOk) ...[
+              _staleWarningCard(),
+              const SizedBox(height: 16),
+            ],
+            if (_isFreshOk) ...[_tipsCard(), const SizedBox(height: 16)],
             Text(
               'IsdaAI gives an estimate from the photo. It is not a food-safety '
               'guarantee. If the fish smells bad or feels slimy, do not eat it.',
@@ -42,6 +49,40 @@ class ResultScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Recipe button: only for a Fresh result
+            if (_isFreshOk) ...[
+              ElevatedButton.icon(
+                onPressed: () {
+                  final species = result.speciesConfidence < 0.5
+                      ? null
+                      : result.species;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          RecipeRecommendationScreen(species: species),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.restaurant_menu_rounded),
+                label: const Text('Get Recipe Recommendation'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(54),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.camera_alt_rounded),
@@ -204,6 +245,47 @@ class ResultScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _staleWarningCard() {
+    return _card(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.dangerous_rounded,
+            color: AppColors.danger,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Do not eat this fish',
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'IsdaAI found signs of spoilage, so no recipe is suggested. '
+                  'Eating spoiled fish can make you sick.',
+                  style: TextStyle(
+                    color: AppColors.textDark,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
