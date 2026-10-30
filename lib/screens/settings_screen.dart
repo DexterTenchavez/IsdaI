@@ -3,6 +3,7 @@ import '../services/app_language.dart';
 import '../services/theme_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/underwater_background.dart';
+import 'history_screen.dart';
 
 /// One row in the bottom-sheet picker (used for Language and Theme).
 class _Choice {
@@ -176,6 +177,10 @@ class SettingsScreen extends StatelessWidget {
                   Icons.history_rounded,
                   context.tr('set_history'),
                   context.tr('set_history_sub'),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                  ),
                 ),
                 _tile(
                   context,

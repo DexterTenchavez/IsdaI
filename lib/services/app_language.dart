@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recipe.dart';
+import 'history_strings.dart';
 
 /// Languages the app supports (SRS FR-27: English or Tagalog).
 enum AppLang { en, tl }
@@ -201,6 +202,8 @@ const Map<String, String> _en = {
   'set_language': 'Language',
   'set_theme': 'Theme',
   'theme_light': 'Light',
+  'theme_dark': 'Dark',
+  'theme_choose': 'Choose theme',
   'set_history': 'Scan History',
   'set_history_sub': 'View past results',
   'set_storage': 'Storage',
@@ -208,6 +211,7 @@ const Map<String, String> _en = {
   'set_about': 'About IsdaAI',
   'set_about_sub': 'App info & version',
   'lang_choose': 'Choose language',
+  ...historyEn,
 };
 
 const Map<String, String> _tl = {
@@ -322,6 +326,8 @@ const Map<String, String> _tl = {
   'set_language': 'Wika',
   'set_theme': 'Tema',
   'theme_light': 'Maliwanag',
+  'theme_dark': 'Madilim',
+  'theme_choose': 'Piliin ang tema',
   'set_history': 'Kasaysayan ng Scan',
   'set_history_sub': 'Tingnan ang mga nakaraang resulta',
   'set_storage': 'Imbakan',
@@ -329,4 +335,5 @@ const Map<String, String> _tl = {
   'set_about': 'Tungkol sa IsdaAI',
   'set_about_sub': 'Impormasyon at bersyon ng app',
   'lang_choose': 'Piliin ang wika',
+  ...historyTl,
 };
