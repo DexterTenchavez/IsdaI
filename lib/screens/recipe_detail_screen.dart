@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
+import '../services/app_language.dart';
 import '../services/recipe_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/underwater_background.dart';
@@ -32,7 +33,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(nowSaved ? 'Recipe saved' : 'Removed from saved'),
+        content: Text(context.tr(nowSaved ? 'snack_saved' : 'snack_removed')),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -40,13 +41,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final pal = context.pal;
+
     return UnderwaterBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text(
-            'Recipe',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          title: Text(
+            context.tr('detail_title'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
@@ -71,8 +77,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   children: [
                     Text(
                       r.title,
-                      style: const TextStyle(
-                        color: AppColors.textDark,
+                      style: TextStyle(
+                        color: pal.text,
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                       ),
@@ -80,8 +86,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     const SizedBox(height: 8),
                     Text(
                       r.description,
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
+                      style: TextStyle(
+                        color: pal.muted,
                         fontSize: 14,
                         height: 1.4,
                       ),
@@ -91,8 +97,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       spacing: 18,
                       runSpacing: 8,
                       children: [
-                        _info(Icons.timer_outlined, r.timeLabel),
-                        _info(Icons.people_outline_rounded, r.servingsLabel),
+                        _info(
+                          Icons.timer_outlined,
+                          recipeTimeLabel(context, r),
+                        ),
+                        _info(
+                          Icons.people_outline_rounded,
+                          recipeServingsLabel(context, r),
+                        ),
                       ],
                     ),
                     if (r.prepMinutes != null || r.cookMinutes != null) ...[
@@ -100,14 +112,17 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       Text(
                         [
                           if (r.prepMinutes != null)
-                            'Prep ${r.prepMinutes} min',
+                            context.tr(
+                              'prep_min',
+                              args: {'n': '${r.prepMinutes}'},
+                            ),
                           if (r.cookMinutes != null)
-                            'Cook ${r.cookMinutes} min',
+                            context.tr(
+                              'cook_min',
+                              args: {'n': '${r.cookMinutes}'},
+                            ),
                         ].join('  •  '),
-                        style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: pal.muted, fontSize: 12),
                       ),
                     ],
                   ],
@@ -118,11 +133,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _title('Ingredients'),
+                    _title(context.tr('ingredients')),
                     for (final i in r.ingredients) _bullet(i),
                     if (r.equipment.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      _title('Equipment'),
+                      _title(context.tr('equipment')),
                       for (final e in r.equipment) _bullet(e),
                     ],
                   ],
@@ -133,7 +148,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _title('Instructions'),
+                    _title(context.tr('instructions')),
                     for (var i = 0; i < r.instructions.length; i++)
                       _step(i + 1, r.instructions[i]),
                   ],
@@ -147,7 +162,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ? Icons.bookmark_remove_rounded
                       : Icons.bookmark_add_rounded,
                 ),
-                label: Text(_saved ? 'Remove from saved' : 'Save recipe'),
+                label: Text(context.tr(_saved ? 'remove_saved' : 'save')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -173,7 +188,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.pal.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -192,8 +207,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
-          color: AppColors.textDark,
+        style: TextStyle(
+          color: context.pal.text,
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),
@@ -202,15 +217,16 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _info(IconData icon, String text) {
+    final pal = context.pal;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: AppColors.primary),
+        Icon(icon, size: 18, color: pal.link),
         const SizedBox(width: 6),
         Text(
           text,
-          style: const TextStyle(
-            color: AppColors.textDark,
+          style: TextStyle(
+            color: pal.text,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -233,8 +249,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                color: AppColors.textDark,
+              style: TextStyle(
+                color: context.pal.text,
                 fontSize: 14,
                 height: 1.3,
               ),
@@ -246,6 +262,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   }
 
   Widget _step(int number, String text) {
+    final pal = context.pal;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -255,10 +272,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             width: 26,
             height: 26,
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: pal.badge, shape: BoxShape.circle),
             child: Text(
               '$number',
               style: const TextStyle(
@@ -274,11 +288,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               padding: const EdgeInsets.only(top: 3),
               child: Text(
                 text,
-                style: const TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
+                style: TextStyle(color: pal.text, fontSize: 14, height: 1.4),
               ),
             ),
           ),

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../data/recipe_data.dart';
 import '../models/recipe.dart';
+import '../services/app_language.dart';
 import '../services/recipe_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/underwater_background.dart';
@@ -70,11 +71,22 @@ class _RecipeRecommendationScreenState
   }
 
   Widget _chip(String label, _Filter value) {
+    final pal = context.pal;
+    final selected = _filter == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
         label: Text(label),
-        selected: _filter == value,
+        selected: selected,
+        showCheckmark: false,
+        // Readable in both themes: solid card color, accent when selected
+        backgroundColor: pal.surface.withValues(alpha: 0.9),
+        selectedColor: AppColors.accent,
+        side: BorderSide.none,
+        labelStyle: TextStyle(
+          color: selected ? Colors.white : pal.text,
+          fontWeight: FontWeight.w600,
+        ),
         onSelected: (_) => setState(() => _filter = value),
       ),
     );
@@ -82,15 +94,16 @@ class _RecipeRecommendationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final pal = context.pal;
     final recipes = _visible;
-    final fishName = widget.species ?? 'fish';
+    final fishName = widget.species ?? context.tr('fish_word');
 
     return UnderwaterBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: Text(
-            _showAll ? 'All recipes' : 'Recipe suggestions',
+            context.tr(_showAll ? 'rec_all' : 'rec_suggestions'),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
@@ -107,8 +120,8 @@ class _RecipeRecommendationScreenState
             children: [
               Text(
                 _showAll
-                    ? 'Every recipe saved in the app.'
-                    : 'Your $fishName is fresh. Here are some ways to cook it.',
+                    ? context.tr('rec_all_intro')
+                    : context.tr('rec_intro', args: {'fish': fishName}),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.92),
                   fontSize: 14,
@@ -123,11 +136,14 @@ class _RecipeRecommendationScreenState
                     children: [
                       if (_hasSpecies)
                         _chip(
-                          'This fish (${widget.species})',
+                          context.tr(
+                            'chip_this',
+                            args: {'species': widget.species!},
+                          ),
                           _Filter.thisFish,
                         ),
-                      _chip('All fish', _Filter.allFish),
-                      _chip('Saved', _Filter.saved),
+                      _chip(context.tr('chip_all'), _Filter.allFish),
+                      _chip(context.tr('chip_saved'), _Filter.saved),
                     ],
                   ),
                 ),
@@ -137,13 +153,13 @@ class _RecipeRecommendationScreenState
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.92),
+                    color: pal.surface.withValues(alpha: 0.92),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'No saved recipes yet. Open a recipe and tap Save recipe.',
+                  child: Text(
+                    context.tr('rec_none_saved'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: pal.muted),
                   ),
                 )
               else
@@ -158,7 +174,7 @@ class _RecipeRecommendationScreenState
                 ElevatedButton.icon(
                   onPressed: () => setState(() => _showAll = true),
                   icon: const Icon(Icons.menu_book_rounded),
-                  label: const Text('View All Recipes'),
+                  label: Text(context.tr('btn_view_all')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -211,10 +227,12 @@ class _RecipeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pal = context.pal;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Material(
-        color: Colors.white.withValues(alpha: 0.95),
+        color: pal.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
@@ -230,8 +248,8 @@ class _RecipeCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         recipe.title,
-                        style: const TextStyle(
-                          color: AppColors.textDark,
+                        style: TextStyle(
+                          color: pal.text,
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
                         ),
@@ -252,31 +270,20 @@ class _RecipeCard extends StatelessWidget {
                   children: [
                     if (recipe.species.isNotEmpty)
                       _pill(recipe.species.first, color: AppColors.accent),
-                    for (final t in recipe.tags)
-                      _pill(t, color: AppColors.primary),
+                    for (final t in recipe.tags) _pill(t, color: pal.link),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(
-                      Icons.timer_outlined,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
+                    Icon(Icons.timer_outlined, size: 18, color: pal.muted),
                     const SizedBox(width: 6),
                     Text(
-                      recipe.timeLabel,
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 13,
-                      ),
+                      recipeTimeLabel(context, recipe),
+                      style: TextStyle(color: pal.muted, fontSize: 13),
                     ),
                     const Spacer(),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.textMuted,
-                    ),
+                    Icon(Icons.chevron_right_rounded, color: pal.muted),
                   ],
                 ),
               ],

@@ -34,6 +34,7 @@ class AppNavBar extends StatelessWidget {
 
     // A bit more solid in 3-button mode so it doesn't blur into the buttons.
     final glassAlpha = threeButton ? 0.78 : 0.55;
+    final pal = context.pal;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(leftGap, 0, rightGap, bottomGap),
@@ -44,12 +45,9 @@ class AppNavBar extends StatelessWidget {
           child: Container(
             height: 68,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: glassAlpha),
+              color: pal.navGlass.withValues(alpha: glassAlpha),
               borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.6),
-                width: 1.2,
-              ),
+              border: Border.all(color: pal.navBorder, width: 1.2),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primaryDark.withValues(alpha: 0.12),
@@ -111,14 +109,14 @@ class _NavItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withValues(alpha: 0.12)
+              ? context.pal.link.withValues(alpha: 0.16)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Icon(
           icon,
           size: 26,
-          color: selected ? AppColors.primary : AppColors.textMuted,
+          color: selected ? context.pal.link : context.pal.muted,
         ),
       ),
     );
@@ -157,7 +155,7 @@ class _LiveNavItemState extends State<_LiveNavItem>
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.selected ? AppColors.primary : AppColors.textMuted;
+    final color = widget.selected ? context.pal.link : context.pal.muted;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -168,7 +166,7 @@ class _LiveNavItemState extends State<_LiveNavItem>
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
           color: widget.selected
-              ? AppColors.primary.withValues(alpha: 0.12)
+              ? context.pal.link.withValues(alpha: 0.16)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),

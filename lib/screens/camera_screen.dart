@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
+import '../services/app_language.dart';
 import '../services/classifier_service.dart';
 import 'result_screen.dart';
 
@@ -47,10 +48,15 @@ class _CameraScreenState extends State<CameraScreen> {
     if (mounted) setState(() {});
   }
 
-  void _showMessage(String text) {
+  /// Shows a snackbar. [key] is a translation key; the text is translated
+  /// here so it always matches the current language.
+  void _showMessage(String key, {Map<String, String>? args}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text), duration: const Duration(seconds: 6)),
+      SnackBar(
+        content: Text(context.tr(key, args: args)),
+        duration: const Duration(seconds: 6),
+      ),
     );
   }
 
@@ -65,16 +71,18 @@ class _CameraScreenState extends State<CameraScreen> {
       if (mounted) setState(() => _flashOn = next);
     } catch (e) {
       print('Flash error: $e');
-      _showMessage('Flash is not available on this device.');
+      _showMessage('cam_flash_na');
     }
   }
 
   Future<void> _analyzeFile(XFile file) async {
     await _modelFuture;
+    if (!mounted) return;
 
     if (!_classifier.isModelLoaded) {
       _showMessage(
-        'AI model failed to load: ${_classifier.loadError ?? "unknown error"}',
+        'cam_model_fail',
+        args: {'error': _classifier.loadError ?? context.tr('cam_unknown')},
       );
       return;
     }
@@ -82,7 +90,7 @@ class _CameraScreenState extends State<CameraScreen> {
     final bytes = await file.readAsBytes();
     final img.Image? decoded = img.decodeImage(bytes);
     if (decoded == null) {
-      _showMessage('Could not read that image.');
+      _showMessage('cam_read_fail');
       return;
     }
 
@@ -98,7 +106,7 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
       );
     } else {
-      _showMessage('Failed to analyze image.');
+      _showMessage('cam_analyze_fail');
     }
   }
 
@@ -116,7 +124,7 @@ class _CameraScreenState extends State<CameraScreen> {
       await _analyzeFile(file);
     } catch (e, st) {
       print('Take picture error: $e\n$st');
-      _showMessage('Something went wrong: $e');
+      _showMessage('cam_wrong', args: {'error': '$e'});
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
@@ -142,7 +150,7 @@ class _CameraScreenState extends State<CameraScreen> {
       await _analyzeFile(file);
     } catch (e, st) {
       print('Gallery error: $e\n$st');
-      _showMessage('Something went wrong: $e');
+      _showMessage('cam_wrong', args: {'error': '$e'});
       if (_controller != null && _controller!.value.isInitialized) {
         await _controller!.resumePreview();
       }
@@ -223,9 +231,9 @@ class _CameraScreenState extends State<CameraScreen> {
                     color: Colors.black.withValues(alpha: 0.45),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'One fish at a time  •  show the eye or gills',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  child: Text(
+                    context.tr('cam_hint'),
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
               ),

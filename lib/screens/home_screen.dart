@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/app_language.dart';
 import '../theme/app_theme.dart';
 import '../widgets/underwater_background.dart';
 
@@ -19,24 +20,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _autoSlide;
   int _guidePage = 0;
 
+  // Text comes from the translation table by key.
   final List<_GuideSlide> _slides = const [
     _GuideSlide(
       icon: Icons.visibility_rounded,
-      title: 'Check the eye or gill',
-      description:
-          'IsdaAI reads freshness cues from the fish eye or gill, the two most reliable spots for spotting spoilage.',
+      titleKey: 'guide1_title',
+      descKey: 'guide1_desc',
     ),
     _GuideSlide(
       icon: Icons.bolt_rounded,
-      title: 'Instant AI analysis',
-      description:
-          'Snap a photo and get a freshness result with a confidence score in seconds.',
+      titleKey: 'guide2_title',
+      descKey: 'guide2_desc',
     ),
     _GuideSlide(
       icon: Icons.wifi_off_rounded,
-      title: 'Works fully offline',
-      description:
-          'No internet needed. The model runs entirely on your device, anywhere in the market or dock.',
+      titleKey: 'guide3_title',
+      descKey: 'guide3_desc',
     ),
   ];
 
@@ -61,9 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _comingSoon(String what) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('$what is coming soon')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('coming_soon', args: {'what': what}))),
+    );
   }
 
   void _showAbout() {
@@ -71,9 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       applicationName: 'IsdaAI',
       applicationVersion: '1.0.0',
-      children: const [
-        Text('Offline fish freshness detection powered by on-device AI.'),
-      ],
+      children: [Text(context.tr('home_sub'))],
     );
   }
 
@@ -119,9 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 28),
-              const Text(
-                'Know your catch\nis fresh',
-                style: TextStyle(
+              Text(
+                context.tr('home_title'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
@@ -130,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Offline fish freshness detection powered by on-device AI.',
+                context.tr('home_sub'),
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.88),
                   fontSize: 14,
@@ -171,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(height: 28),
-              const Text(
-                'Quick actions',
-                style: TextStyle(
+              Text(
+                context.tr('quick_actions'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
@@ -191,27 +188,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   _ActionCard(
                     icon: Icons.camera_alt_rounded,
-                    label: 'Scan a photo',
-                    hint: 'Take or pick a picture',
+                    label: context.tr('act_scan'),
+                    hint: context.tr('act_scan_hint'),
                     highlight: true,
                     onTap: () => widget.onNavigate(1),
                   ),
                   _ActionCard(
                     icon: Icons.videocam_rounded,
-                    label: 'Live scan',
-                    hint: 'Detect fish in real time',
+                    label: context.tr('act_live'),
+                    hint: context.tr('act_live_hint'),
                     onTap: () => widget.onNavigate(2),
                   ),
                   _ActionCard(
                     icon: Icons.history_rounded,
-                    label: 'History',
-                    hint: 'Your past results',
-                    onTap: () => _comingSoon('History'),
+                    label: context.tr('act_history'),
+                    hint: context.tr('act_history_hint'),
+                    onTap: () => _comingSoon(context.tr('act_history')),
                   ),
                   _ActionCard(
                     icon: Icons.info_outline_rounded,
-                    label: 'About IsdaAI',
-                    hint: 'App info and version',
+                    label: context.tr('act_about'),
+                    hint: context.tr('act_about_hint'),
                     onTap: _showAbout,
                   ),
                 ],
@@ -226,12 +223,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _GuideSlide {
   final IconData icon;
-  final String title;
-  final String description;
+  final String titleKey;
+  final String descKey;
   const _GuideSlide({
     required this.icon,
-    required this.title,
-    required this.description,
+    required this.titleKey,
+    required this.descKey,
   });
 }
 
@@ -270,7 +267,7 @@ class _GuideCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            slide.title,
+            context.tr(slide.titleKey),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -279,7 +276,7 @@ class _GuideCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            slide.description,
+            context.tr(slide.descKey),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.88),
               fontSize: 13,

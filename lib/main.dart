@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'theme/app_theme.dart';
+import 'services/app_language.dart';
+import 'services/theme_controller.dart';
 import 'screens/home_screen.dart';
 import 'screens/camera_screen.dart';
 import 'screens/live_scan_screen.dart';
@@ -8,7 +10,7 @@ import 'screens/settings_screen.dart';
 import 'screens/splash_screen.dart';
 import 'widgets/app_navbar.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Draw behind the system bars so the nav bar can read the real inset
@@ -24,7 +26,13 @@ void main() {
     ),
   );
 
-  runApp(const IsdaAIApp());
+  // Load the saved language and theme before the first screen is drawn.
+  await AppLanguage.instance.load();
+  await ThemeController.instance.load();
+
+  runApp(
+    AppLanguageScope(language: AppLanguage.instance, child: const IsdaAIApp()),
+  );
 }
 
 class IsdaAIApp extends StatelessWidget {
@@ -32,11 +40,19 @@ class IsdaAIApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'IsdaAI',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      home: const SplashScreen(home: MainNavigationWrapper()),
+    // Rebuilds MaterialApp when the user picks Light or Dark in Settings.
+    return ListenableBuilder(
+      listenable: ThemeController.instance,
+      builder: (context, _) {
+        return MaterialApp(
+          title: 'IsdaAI',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeController.instance.mode,
+          home: const SplashScreen(home: MainNavigationWrapper()),
+        );
+      },
     );
   }
 }
@@ -75,12 +91,12 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       final messenger = ScaffoldMessenger.of(context);
       messenger.hideCurrentSnackBar();
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Press back again to exit'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(context.tr('back_again')),
+          duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           // keep it above the floating nav bar
-          margin: EdgeInsets.fromLTRB(20, 0, 20, 110),
+          margin: const EdgeInsets.fromLTRB(20, 0, 20, 110),
         ),
       );
       return;

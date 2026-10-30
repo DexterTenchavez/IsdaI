@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import '../theme/app_theme.dart';
 
 /// Animated underwater scene: gradient water, drifting light rays,
 /// swimming fish (parallax by depth) and rising bubbles.
@@ -89,15 +90,16 @@ class _UnderwaterBackgroundState extends State<UnderwaterBackground>
 
   @override
   Widget build(BuildContext context) {
+    final pal = context.pal; // water color follows Light / Dark
     return Stack(
       fit: StackFit.expand,
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF69A4F2), Color(0xFF2F6FD0), Color(0xFF0D47A1)],
+              colors: [pal.waterTop, pal.waterMid, pal.waterBottom],
             ),
           ),
         ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../services/app_language.dart';
 import '../services/classifier_service.dart';
 import '../theme/app_theme.dart';
 import 'recipe_recommendation_screen.dart';
@@ -18,9 +19,9 @@ class ResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Scan result',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        title: Text(
+          context.tr('result_title'),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
       body: SafeArea(
@@ -31,16 +32,15 @@ class ResultScreen extends StatelessWidget {
               _photoCard(),
               const SizedBox(height: 16),
             ],
-            _isOk ? _verdictCard() : _problemCard(),
+            _isOk ? _verdictCard(context) : _problemCard(context),
             const SizedBox(height: 16),
             if (_isStaleOk) ...[
-              _staleWarningCard(),
+              _staleWarningCard(context),
               const SizedBox(height: 16),
             ],
-            if (_isFreshOk) ...[_tipsCard(), const SizedBox(height: 16)],
+            if (_isFreshOk) ...[_tipsCard(context), const SizedBox(height: 16)],
             Text(
-              'IsdaAI gives an estimate from the photo. It is not a food-safety '
-              'guarantee. If the fish smells bad or feels slimy, do not eat it.',
+              context.tr('disclaimer'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.85),
@@ -66,7 +66,7 @@ class ResultScreen extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.restaurant_menu_rounded),
-                label: const Text('Get Recipe Recommendation'),
+                label: Text(context.tr('btn_recipe')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -86,7 +86,7 @@ class ResultScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.camera_alt_rounded),
-              label: Text(_isOk ? 'Scan another fish' : 'Retake photo'),
+              label: Text(context.tr(_isOk ? 'btn_scan_again' : 'btn_retake')),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryDark,
                 foregroundColor: Colors.white,
@@ -106,12 +106,12 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _card({required Widget child}) {
+  Widget _card(BuildContext context, {required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.pal.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -146,14 +146,16 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _verdictCard() {
+  Widget _verdictCard(BuildContext context) {
+    final pal = context.pal;
     final fresh = result.isFresh;
-    final color = fresh ? AppColors.success : AppColors.danger;
+    final color = fresh ? pal.good : pal.bad;
     final speciesName = result.speciesConfidence < 0.5
-        ? 'Species unclear'
-        : (result.species ?? 'Unknown');
+        ? context.tr('species_unclear')
+        : (result.species ?? context.tr('species_unknown'));
 
     return _card(
+      context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -172,36 +174,44 @@ class ResultScreen extends StatelessWidget {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  fresh ? 'FRESH' : 'STALE',
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
+                Flexible(
+                  child: Text(
+                    context.tr(fresh ? 'badge_fresh' : 'badge_stale'),
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Fish',
-            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          Text(
+            context.tr('fish_label'),
+            style: TextStyle(color: pal.muted, fontSize: 13),
           ),
           const SizedBox(height: 2),
           Text(
             speciesName,
-            style: const TextStyle(
-              color: AppColors.textDark,
+            style: TextStyle(
+              color: pal.text,
               fontSize: 28,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 20),
-          _meter('Freshness confidence', result.freshnessConfidence, color),
+          _meter(
+            context,
+            context.tr('meter_fresh'),
+            result.freshnessConfidence,
+            color,
+          ),
           const SizedBox(height: 16),
           _meter(
-            'Species match',
+            context,
+            context.tr('meter_species'),
             result.speciesConfidence,
             AppColors.primaryLight,
           ),
@@ -210,7 +220,8 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _meter(String label, double value, Color color) {
+  Widget _meter(BuildContext context, String label, double value, Color color) {
+    final pal = context.pal;
     final v = value.clamp(0.0, 1.0).toDouble();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,19 +229,15 @@ class ResultScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(color: pal.muted, fontWeight: FontWeight.w500),
               ),
             ),
             Text(
               '${(v * 100).round()}%',
-              style: const TextStyle(
-                color: AppColors.textDark,
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(color: pal.text, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -248,38 +255,31 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _staleWarningCard() {
+  Widget _staleWarningCard(BuildContext context) {
+    final pal = context.pal;
     return _card(
+      context,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.dangerous_rounded,
-            color: AppColors.danger,
-            size: 28,
-          ),
+          Icon(Icons.dangerous_rounded, color: pal.bad, size: 28),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Do not eat this fish',
+                  context.tr('stale_title'),
                   style: TextStyle(
-                    color: AppColors.danger,
+                    color: pal.bad,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'IsdaAI found signs of spoilage, so no recipe is suggested. '
-                  'Eating spoiled fish can make you sick.',
-                  style: TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
+                  context.tr('stale_body'),
+                  style: TextStyle(color: pal.text, fontSize: 14, height: 1.4),
                 ),
               ],
             ),
@@ -289,33 +289,33 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _problemCard() {
-    late final IconData icon;
-    late final String title;
-    late final String body;
+  Widget _problemCard(BuildContext context) {
+    final pal = context.pal;
+    final IconData icon;
+    final String title;
+    final String body;
 
     switch (result.status) {
       case ScanStatus.notFish:
         icon = Icons.search_off_rounded;
-        title = 'No fish detected';
-        body =
-            'Point the camera at one fish and show the eye or gills, then try again.';
+        title = context.tr('notfish_title');
+        body = context.tr('notfish_body');
         break;
       case ScanStatus.multipleFish:
         icon = Icons.grid_view_rounded;
-        title = 'Too many fish in the photo';
-        body = 'Please take a photo of one fish at a time.';
+        title = context.tr('multi_title');
+        body = context.tr('multi_body');
         break;
       case ScanStatus.lowConfidence:
       case ScanStatus.ok:
         icon = Icons.blur_on_rounded;
-        title = "Couldn't tell clearly";
-        body =
-            'The photo was hard to judge. Try better light, move closer to the eye or gills, and hold steady.';
+        title = context.tr('low_title');
+        body = context.tr('low_body');
         break;
     }
 
     return _card(
+      context,
       child: Column(
         children: [
           Container(
@@ -330,8 +330,8 @@ class ResultScreen extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textDark,
+            style: TextStyle(
+              color: pal.text,
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
@@ -340,33 +340,31 @@ class ResultScreen extends StatelessWidget {
           Text(
             body,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 14,
-              height: 1.4,
-            ),
+            style: TextStyle(color: pal.muted, fontSize: 14, height: 1.4),
           ),
         ],
       ),
     );
   }
 
-  Widget _tipsCard() {
-    const tips = [
-      'Eyes are clear and slightly bulging',
-      'Gills are bright red or pink, not brown or gray',
-      'Flesh is firm and springs back when pressed',
-      'Smell is mild and sea-like, not sour or sharp',
+  Widget _tipsCard(BuildContext context) {
+    final pal = context.pal;
+    final tips = [
+      context.tr('tip1'),
+      context.tr('tip2'),
+      context.tr('tip3'),
+      context.tr('tip4'),
     ];
 
     return _card(
+      context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Check it yourself too',
+          Text(
+            context.tr('tips_title'),
             style: TextStyle(
-              color: AppColors.textDark,
+              color: pal.text,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -378,17 +376,13 @@ class ResultScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.check_rounded,
-                    color: AppColors.primaryLight,
-                    size: 20,
-                  ),
+                  Icon(Icons.check_rounded, color: pal.link, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       tip,
-                      style: const TextStyle(
-                        color: AppColors.textDark,
+                      style: TextStyle(
+                        color: pal.text,
                         fontSize: 14,
                         height: 1.3,
                       ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
+import '../services/app_language.dart';
 import '../theme/app_theme.dart';
 
 // ====== CHANGE COLORS HERE ======
@@ -139,6 +140,9 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final freshLabel = context.tr('fresh');
+    final staleLabel = context.tr('stale');
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -160,8 +164,14 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
               child: IgnorePointer(
                 child: ValueListenableBuilder<List<YOLOResult>>(
                   valueListenable: _detections,
-                  builder: (_, results, __) =>
-                      CustomPaint(painter: _BoxPainter(results, _cameraAspect)),
+                  builder: (_, results, __) => CustomPaint(
+                    painter: _BoxPainter(
+                      results,
+                      _cameraAspect,
+                      freshLabel,
+                      staleLabel,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -222,7 +232,10 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                       builder: (_, results, __) {
                         if (results.isEmpty) {
                           return Text(
-                            'No detections (frames: $_frames)',
+                            context.tr(
+                              'live_none',
+                              args: {'frames': '$_frames'},
+                            ),
                             style: const TextStyle(
                               color: Colors.white70,
                               fontWeight: FontWeight.w600,
@@ -232,9 +245,14 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                         final best = _best(results);
                         final fresh = isFreshResult(best);
                         return Text(
-                          '${results.length} found • '
-                          '${fresh ? 'Fresh' : 'Stale'} '
-                          '${(best.confidence * 100).toStringAsFixed(0)}%',
+                          context.tr(
+                            'live_found',
+                            args: {
+                              'count': '${results.length}',
+                              'label': fresh ? freshLabel : staleLabel,
+                              'pct': (best.confidence * 100).toStringAsFixed(0),
+                            },
+                          ),
                           style: TextStyle(
                             color: fresh ? kFreshColor : kStaleColor,
                             fontWeight: FontWeight.bold,
@@ -245,9 +263,12 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                     ),
                     Row(
                       children: [
-                        const Text(
-                          'Min conf',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        Text(
+                          context.tr('live_min_conf'),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
                         ),
                         Expanded(
                           child: Slider(
@@ -283,7 +304,7 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _close,
                   icon: const Icon(Icons.stop_rounded),
-                  label: const Text('Stop Detection'),
+                  label: Text(context.tr('live_stop')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.danger,
                     foregroundColor: Colors.white,
@@ -323,8 +344,15 @@ class _LiveScanScreenState extends State<LiveScanScreen> {
 class _BoxPainter extends CustomPainter {
   final List<YOLOResult> results;
   final double cameraAspect; // width / height of the camera frame
+  final String freshLabel;
+  final String staleLabel;
 
-  _BoxPainter(this.results, this.cameraAspect);
+  _BoxPainter(
+    this.results,
+    this.cameraAspect,
+    this.freshLabel,
+    this.staleLabel,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -369,7 +397,7 @@ class _BoxPainter extends CustomPainter {
 
       // Label
       final label =
-          '${fresh ? 'Fresh' : 'Stale'} ${(r.confidence * 100).toStringAsFixed(0)}%';
+          '${fresh ? freshLabel : staleLabel} ${(r.confidence * 100).toStringAsFixed(0)}%';
       final tp = TextPainter(
         text: TextSpan(
           text: label,
@@ -400,5 +428,8 @@ class _BoxPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BoxPainter old) =>
-      old.results != results || old.cameraAspect != cameraAspect;
+      old.results != results ||
+      old.cameraAspect != cameraAspect ||
+      old.freshLabel != freshLabel ||
+      old.staleLabel != staleLabel;
 }
