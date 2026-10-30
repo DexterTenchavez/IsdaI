@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/language/app_language.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/glass_card.dart';
 import '../../widgets/underwater_background.dart';
+import '../history/history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Switches tabs in MainNavigationWrapper:
@@ -59,9 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _comingSoon(String what) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr('coming_soon', args: {'what': what}))),
+  void _openHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HistoryScreen()),
     );
   }
 
@@ -200,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.history_rounded,
                     label: context.tr('act_history'),
                     hint: context.tr('act_history_hint'),
-                    onTap: () => _comingSoon(context.tr('act_history')),
+                    onTap: _openHistory,
                   ),
                   _ActionCard(
                     icon: Icons.info_outline_rounded,
@@ -235,52 +238,47 @@ class _GuideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        // Translucent so the fish stay visible behind the card
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryDark.withValues(alpha: 0.72),
-            AppColors.primary.withValues(alpha: 0.5),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      // Dark blue glass: the text on it is white, so the tint and the fill
+      // are blue instead of the white used by normal cards.
+      child: GlassCard(
+        radius: 24,
+        padding: const EdgeInsets.all(20),
+        opacity: 1.6,
+        tint: AppColors.primaryDark,
+        fill: AppColors.primaryDark.withValues(alpha: 0.25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(slide.icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              context.tr(slide.titleKey),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              context.tr(slide.descKey),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.88),
+                fontSize: 13,
+                height: 1.3,
+              ),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(slide.icon, color: Colors.white, size: 24),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            context.tr(slide.titleKey),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            context.tr(slide.descKey),
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.88),
-              fontSize: 13,
-              height: 1.3,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -303,56 +301,53 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = highlight
-        ? AppColors.accent
-        : Colors.white.withValues(alpha: 0.92);
-    final fg = highlight ? Colors.white : AppColors.textDark;
-    final sub = highlight
-        ? Colors.white.withValues(alpha: 0.9)
-        : AppColors.textMuted;
+    final pal = context.pal;
+
+    // Uses the theme palette (not AppColors.textDark) so it also reads
+    // correctly in Dark mode.
+    final fg = highlight ? Colors.white : pal.text;
+    final sub = highlight ? Colors.white.withValues(alpha: 0.9) : pal.muted;
     final iconBg = highlight
         ? Colors.white.withValues(alpha: 0.22)
-        : AppColors.primary.withValues(alpha: 0.1);
-    final iconFg = highlight ? Colors.white : AppColors.primary;
+        : pal.link.withValues(alpha: 0.12);
+    final iconFg = highlight ? Colors.white : pal.link;
 
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+    return GlassCard(
+      radius: 20,
+      padding: const EdgeInsets.all(16),
+      onTap: onTap,
+      // The main action is orange glass; the others are normal glass.
+      opacity: highlight ? 1.2 : 2.0,
+      tint: highlight ? AppColors.accent : null,
+      fill: highlight ? AppColors.accent.withValues(alpha: 0.7) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconFg, size: 22),
+          ),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  borderRadius: BorderRadius.circular(12),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
                 ),
-                child: Icon(icon, color: iconFg, size: 22),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: fg,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(hint, style: TextStyle(color: sub, fontSize: 12)),
-                ],
-              ),
+              const SizedBox(height: 2),
+              Text(hint, style: TextStyle(color: sub, fontSize: 12)),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

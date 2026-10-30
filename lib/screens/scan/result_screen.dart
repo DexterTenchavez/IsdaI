@@ -6,6 +6,8 @@ import '../../services/ai/classifier_service.dart';
 import '../../services/language/date_label.dart';
 import '../../services/storage/history_database.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/underwater_background.dart';
 import '../recipes/recipe_recommendation_screen.dart';
 
 /// Shows a scan result. It is used in two ways:
@@ -77,79 +79,163 @@ class _ResultScreenState extends State<ResultScreen> {
   Widget build(BuildContext context) {
     final pal = context.pal;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          context.tr(_fromHistory ? 'history_detail_title' : 'result_title'),
-          style: const TextStyle(fontWeight: FontWeight.w700),
+    // Same underwater scene as the other screens, so the glass cards have
+    // something to blur. The Scaffold itself must be transparent.
+    return UnderwaterBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(
+            context.tr(_fromHistory ? 'history_detail_title' : 'result_title'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
         ),
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          children: [
-            if (imagePath != null) ...[
-              _photoCard(),
-              const SizedBox(height: 16),
-            ],
-            if (_fromHistory) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: 16,
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    scanDateLabel(context, widget.record!.createdAt),
-                    style: TextStyle(
+        body: SafeArea(
+          top: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            children: [
+              if (imagePath != null) ...[
+                _photoCard(),
+                const SizedBox(height: 16),
+              ],
+              if (_fromHistory) ...[
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 16,
                       color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 13,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      scanDateLabel(context, widget.record!.createdAt),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              _isOk ? _verdictCard(context) : _problemCard(context),
+              const SizedBox(height: 16),
+              if (_isStaleOk) ...[
+                _staleWarningCard(context),
+                const SizedBox(height: 16),
+              ],
+              if (_isFreshOk) ...[
+                _tipsCard(context),
+                const SizedBox(height: 16),
+              ],
+              Text(
+                context.tr('disclaimer'),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Recipe button: only for a Fresh result
+              if (_isFreshOk) ...[
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final species = result.speciesConfidence < 0.5
+                        ? null
+                        : result.species;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            RecipeRecommendationScreen(species: species),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.restaurant_menu_rounded),
+                  label: Text(context.tr('btn_recipe')),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(54),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-            _isOk ? _verdictCard(context) : _problemCard(context),
-            const SizedBox(height: 16),
-            if (_isStaleOk) ...[
-              _staleWarningCard(context),
-              const SizedBox(height: 16),
-            ],
-            if (_isFreshOk) ...[_tipsCard(context), const SizedBox(height: 16)],
-            Text(
-              context.tr('disclaimer'),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85),
-                fontSize: 12,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 12),
+              ],
 
-            // Recipe button: only for a Fresh result
-            if (_isFreshOk) ...[
-              ElevatedButton.icon(
-                onPressed: () {
-                  final species = result.speciesConfidence < 0.5
-                      ? null
-                      : result.species;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          RecipeRecommendationScreen(species: species),
+              // Save button: only right after a scan that was classified
+              if (_isOk && !_fromHistory) ...[
+                ElevatedButton.icon(
+                  onPressed: (_saved || _saving) ? null : _save,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          _saved
+                              ? Icons.check_circle_rounded
+                              : Icons.bookmark_add_rounded,
+                        ),
+                  label: Text(
+                    context.tr(
+                      _saved ? 'btn_saved_history' : 'btn_save_history',
                     ),
-                  );
-                },
-                icon: const Icon(Icons.restaurant_menu_rounded),
-                label: Text(context.tr('btn_recipe')),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: pal.surface.withValues(alpha: 0.92),
+                    foregroundColor: pal.link,
+                    disabledBackgroundColor: pal.surface.withValues(alpha: 0.7),
+                    disabledForegroundColor: _saved ? pal.good : pal.muted,
+                    minimumSize: const Size.fromHeight(54),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(
+                  _fromHistory
+                      ? Icons.arrow_back_rounded
+                      : Icons.camera_alt_rounded,
+                ),
+                label: Text(
+                  context.tr(
+                    _fromHistory
+                        ? 'btn_back_history'
+                        : (_isOk ? 'btn_scan_again' : 'btn_retake'),
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.primaryDark.withValues(
+                    alpha: 0.85,
+                  ),
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(54),
                   shape: RoundedRectangleBorder(
@@ -161,93 +247,18 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
             ],
-
-            // Save button: only right after a scan that was classified
-            if (_isOk && !_fromHistory) ...[
-              ElevatedButton.icon(
-                onPressed: (_saved || _saving) ? null : _save,
-                icon: _saving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        _saved
-                            ? Icons.check_circle_rounded
-                            : Icons.bookmark_add_rounded,
-                      ),
-                label: Text(
-                  context.tr(_saved ? 'btn_saved_history' : 'btn_save_history'),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: pal.surface,
-                  foregroundColor: pal.link,
-                  disabledBackgroundColor: pal.surface.withValues(alpha: 0.7),
-                  disabledForegroundColor: _saved ? pal.good : pal.muted,
-                  minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(
-                _fromHistory
-                    ? Icons.arrow_back_rounded
-                    : Icons.camera_alt_rounded,
-              ),
-              label: Text(
-                context.tr(
-                  _fromHistory
-                      ? 'btn_back_history'
-                      : (_isOk ? 'btn_scan_again' : 'btn_retake'),
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryDark,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(54),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+  /// All content cards on this screen are glass now.
   Widget _card(BuildContext context, {required Widget child}) {
-    return Container(
-      width: double.infinity,
+    return GlassCard(
+      radius: 24,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: context.pal.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
       child: child,
     );
   }
