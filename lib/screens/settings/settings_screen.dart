@@ -118,6 +118,11 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       applicationName: 'IsdaAI',
       applicationVersion: '1.0.0',
+      applicationIcon: Image.asset(
+        'assets/logo/logo_isdaai.png',
+        width: 48,
+        height: 48,
+      ),
       children: [Text(context.tr('home_sub'))],
     );
   }

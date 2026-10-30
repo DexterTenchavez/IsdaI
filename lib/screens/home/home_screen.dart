@@ -91,16 +91,13 @@ class _HomeScreenState extends State<HomeScreen> {
               // Brand row
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.set_meal_rounded,
-                      color: Colors.white,
-                      size: 26,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/logo/logo_isdaai.png',
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(width: 12),
