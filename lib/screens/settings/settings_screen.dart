@@ -18,7 +18,7 @@ class _Choice {
     required this.label,
     required this.selected,
     required this.onSelect,
-    this.icon,
+    required this.icon,
   });
 }
 
@@ -92,6 +92,7 @@ class SettingsScreen extends StatelessWidget {
           label: AppLanguage.nativeName(l),
           selected: language.lang == l,
           onSelect: () => language.set(l),
+          icon: null,
         ),
     ]);
   }
