@@ -73,6 +73,3 @@ const List<FishSpecies> supportedSpecies = [
         'Isdang karaniwang ibinebenta sa mga palengke ng Trinidad, Bohol. Madalas gawing paksiw, iprito, o iluto sa gata.',
   ),
 ];
-
-/// Just the names, in display order.
-final List<String> kSpeciesNames = [for (final s in supportedSpecies) s.name];

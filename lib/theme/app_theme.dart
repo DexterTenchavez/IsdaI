@@ -7,10 +7,7 @@ class AppColors {
   static const Color primaryLight = Color(0xFF5472D3);
   static const Color accent = Color(0xFFFF7043);
   static const Color background = Color.fromARGB(255, 105, 164, 242);
-  static const Color surface = Colors.white;
   static const Color textDark = Color(0xFF1B2430);
-  static const Color textMuted = Color(0xFF7A8699);
-  static const Color success = Color(0xFF2E7D32);
   static const Color danger = Color(0xFFD32F2F);
 }
 
@@ -32,8 +29,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color waterTop; // underwater gradient
   final Color waterMid;
   final Color waterBottom;
-  final Color navGlass; // nav bar tint (alpha is applied in the nav bar)
-  final Color navBorder; // nav bar outline
+  final Color
+  navGlass; // nav bar tint (alpha is applied in the nav bar) // nav bar outline
 
   const AppPalette({
     required this.surface,
@@ -47,7 +44,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.waterMid,
     required this.waterBottom,
     required this.navGlass,
-    required this.navBorder,
   });
 
   static const AppPalette light = AppPalette(
@@ -62,7 +58,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
     waterMid: Color(0xFF2F6FD0),
     waterBottom: Color(0xFF0D47A1),
     navGlass: Colors.white,
-    navBorder: Color(0x99FFFFFF),
   );
 
   static const AppPalette dark = AppPalette(
@@ -77,7 +72,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
     waterMid: Color(0xFF123463),
     waterBottom: Color(0xFF071A38),
     navGlass: Color(0xFF0B1B33),
-    navBorder: Color(0x26FFFFFF),
   );
 
   @override
@@ -107,7 +101,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
       waterMid: waterMid ?? this.waterMid,
       waterBottom: waterBottom ?? this.waterBottom,
       navGlass: navGlass ?? this.navGlass,
-      navBorder: navBorder ?? this.navBorder,
     );
   }
 
@@ -128,7 +121,6 @@ class AppPalette extends ThemeExtension<AppPalette> {
       waterMid: l(waterMid, other.waterMid),
       waterBottom: l(waterBottom, other.waterBottom),
       navGlass: l(navGlass, other.navGlass),
-      navBorder: l(navBorder, other.navBorder),
     );
   }
 }

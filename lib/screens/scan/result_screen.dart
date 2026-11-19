@@ -6,6 +6,7 @@ import '../../services/ai/classifier_service.dart';
 import '../../services/language/date_label.dart';
 import '../../services/storage/history_database.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/coach_tour.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/underwater_background.dart';
 import '../recipes/recipe_recommendation_screen.dart';
@@ -35,6 +36,11 @@ class _ResultScreenState extends State<ResultScreen> {
   bool _saved = false;
   bool _saving = false;
 
+  // Targets for the first-time tour.
+  final GlobalKey _verdictKey = GlobalKey();
+  final GlobalKey _saveKey = GlobalKey();
+  final GlobalKey _recipeKey = GlobalKey();
+
   ClassificationResult get result => widget.result;
   String? get imagePath => widget.imagePath;
   bool get _fromHistory => widget.record != null;
@@ -42,6 +48,48 @@ class _ResultScreenState extends State<ResultScreen> {
   bool get _isOk => result.status == ScanStatus.ok;
   bool get _isFreshOk => _isOk && result.isFresh;
   bool get _isStaleOk => _isOk && !result.isFresh;
+
+  @override
+  void initState() {
+    super.initState();
+    // The Save and Recipe buttons only exist for a fresh result that was
+    // just scanned, so the first-time tour waits for that.
+    if (_isFreshOk && !_fromHistory) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _startTour());
+    }
+  }
+
+  @override
+  void dispose() {
+    CoachTour.dismiss(owner: this);
+    super.dispose();
+  }
+
+  void _startTour() {
+    if (!mounted) return;
+    CoachTour.showOnce(
+      context,
+      owner: this,
+      id: 'result',
+      steps: [
+        CoachStep(
+          target: _verdictKey,
+          titleKey: 'tour_res_verdict_t',
+          bodyKey: 'tour_res_verdict_b',
+        ),
+        CoachStep(
+          target: _saveKey,
+          titleKey: 'tour_res_save_t',
+          bodyKey: 'tour_res_save_b',
+        ),
+        CoachStep(
+          target: _recipeKey,
+          titleKey: 'tour_res_recipe_t',
+          bodyKey: 'tour_res_recipe_b',
+        ),
+      ],
+    );
+  }
 
   Future<void> _save() async {
     if (_saved || _saving) return;
@@ -99,6 +147,9 @@ class _ResultScreenState extends State<ResultScreen> {
         body: SafeArea(
           top: false,
           child: ListView(
+            // Build everything, even below the screen edge, so the tour can
+            // find the buttons and scroll to them.
+            cacheExtent: 2000,
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
               if (imagePath != null) ...[
@@ -126,7 +177,9 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
-              _isOk ? _verdictCard(context) : _problemCard(context),
+              _isOk
+                  ? KeyedSubtree(key: _verdictKey, child: _verdictCard(context))
+                  : _problemCard(context),
               const SizedBox(height: 16),
               if (_isStaleOk) ...[
                 _staleWarningCard(context),
@@ -150,6 +203,7 @@ class _ResultScreenState extends State<ResultScreen> {
               // Recipe button: only for a Fresh result
               if (_isFreshOk) ...[
                 ElevatedButton.icon(
+                  key: _recipeKey,
                   onPressed: () {
                     final species = result.species;
                     Navigator.push(
@@ -181,6 +235,7 @@ class _ResultScreenState extends State<ResultScreen> {
               // Save button: only right after a scan that was classified
               if (_isOk && !_fromHistory) ...[
                 ElevatedButton.icon(
+                  key: _saveKey,
                   onPressed: (_saved || _saving) ? null : _save,
                   icon: _saving
                       ? const SizedBox(

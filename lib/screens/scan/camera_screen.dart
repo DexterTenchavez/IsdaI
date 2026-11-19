@@ -2,21 +2,14 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import '../../data/fish_species_data.dart';
 import '../../theme/app_theme.dart';
 import '../../services/language/app_language.dart';
 import '../../services/ai/classifier_service.dart';
+import '../../widgets/coach_tour.dart';
 import 'result_screen.dart';
 
-const List<String> kSpeciesNames = [
-  'Bangus',
-  'Tilapia',
-  'Andohaw',
-  'Timbungan',
-  'Silay',
-  'Carabalyas',
-];
-
-/// Dropdown value that means "let the model guess the species".
+/// Sheet value that means "let the model guess the species".
 const String _kAuto = '__auto__';
 
 class CameraScreen extends StatefulWidget {
@@ -33,6 +26,13 @@ class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
   bool _flashOn = false;
+
+  // Targets for the first-time tour.
+  final GlobalKey _frameKey = GlobalKey();
+  final GlobalKey _speciesKey = GlobalKey();
+  final GlobalKey _flashKey = GlobalKey();
+  final GlobalKey _galleryKey = GlobalKey();
+  final GlobalKey _shutterKey = GlobalKey();
 
   /// Species chosen by the user (SRS FR-08).
   /// null = Auto (the model's own guess is used).
@@ -62,6 +62,49 @@ class _CameraScreenState extends State<CameraScreen> {
       await _controller!.setFlashMode(FlashMode.off);
     } catch (_) {}
     if (mounted) setState(() {});
+
+    // The controls only exist once the camera is ready, so the first-time
+    // tour starts here.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startTour());
+  }
+
+  void _startTour() {
+    if (!mounted) return;
+    CoachTour.showOnce(
+      context,
+      owner: this,
+      id: 'camera',
+      steps: [
+        CoachStep(
+          target: _frameKey,
+          titleKey: 'tour_cam_frame_t',
+          bodyKey: 'tour_cam_frame_b',
+        ),
+        CoachStep(
+          target: _speciesKey,
+          titleKey: 'tour_cam_species_t',
+          bodyKey: 'tour_cam_species_b',
+        ),
+        CoachStep(
+          target: _flashKey,
+          titleKey: 'tour_cam_flash_t',
+          bodyKey: 'tour_cam_flash_b',
+          circle: true,
+        ),
+        CoachStep(
+          target: _galleryKey,
+          titleKey: 'tour_cam_gallery_t',
+          bodyKey: 'tour_cam_gallery_b',
+          circle: true,
+        ),
+        CoachStep(
+          target: _shutterKey,
+          titleKey: 'tour_cam_shutter_t',
+          bodyKey: 'tour_cam_shutter_b',
+          circle: true,
+        ),
+      ],
+    );
   }
 
   /// Shows a snackbar. [key] is a translation key; the text is translated
@@ -182,74 +225,233 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   void dispose() {
+    CoachTour.dismiss(owner: this);
     _controller?.dispose();
     _classifier.dispose();
     super.dispose();
   }
 
-  /// Species dropdown (SRS FR-08). Default = Auto.
-  Widget _speciesDropdown(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+  // ==========================================================================
+  // Species picker (SRS FR-08): pill button + bottom sheet. Default = Auto.
+  // ==========================================================================
+
+  /// The pill at the top of the camera. Tap it to open the sheet.
+  Widget _speciesButton(BuildContext context) {
+    final picked = _species != null;
+    final label =
+        '${context.tr('species_label')}: ${_species ?? context.tr('Auto')}';
+
+    return Material(
+      color: Colors.black.withValues(alpha: 0.5),
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: picked
+              ? AppColors.accent
+              : Colors.white.withValues(alpha: 0.25),
+          width: picked ? 1.6 : 1,
+        ),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _species ?? _kAuto,
-          dropdownColor: const Color(0xFF16253F),
-          borderRadius: BorderRadius.circular(16),
-          iconEnabledColor: Colors.white,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: _openSpeciesSheet,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                picked ? Icons.set_meal_rounded : Icons.auto_awesome_rounded,
+                color: picked ? AppColors.accent : Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.keyboard_arrow_up_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ],
           ),
-          selectedItemBuilder: (_) => [
-            _selectedLabel(
-              '${context.tr('species_label')}: '
-              '${context.tr('Auto')}',
-            ),
-            for (final s in kSpeciesNames)
-              _selectedLabel('${context.tr('species_label')}: $s'),
-          ],
-          items: [
-            DropdownMenuItem<String>(
-              value: _kAuto,
-              child: Text(context.tr('Auto')),
-            ),
-            for (final s in kSpeciesNames)
-              DropdownMenuItem<String>(value: s, child: Text(s)),
-          ],
-          onChanged: (v) {
-            if (v == null) return;
-            setState(() => _species = v == _kAuto ? null : v);
-          },
         ),
       ),
     );
   }
 
-  Widget _selectedLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.set_meal_rounded, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+  /// Bottom sheet with Auto + the six species.
+  Future<void> _openSpeciesSheet() async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+      ),
+      builder: (sheetContext) {
+        final pal = sheetContext.pal;
+        return SafeArea(
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            decoration: BoxDecoration(
+              color: pal.surface,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  decoration: BoxDecoration(
+                    color: pal.muted.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+                    children: [
+                      _sheetTile(
+                        sheetContext,
+                        leading: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.auto_awesome_rounded,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                        title: sheetContext.tr('Auto'),
+                        subtitle: sheetContext.tr('Species Auto Hint'),
+                        selected: _species == null,
+                        onTap: () => Navigator.pop(sheetContext, _kAuto),
+                      ),
+                      for (final s in supportedSpecies)
+                        _sheetTile(
+                          sheetContext,
+                          leading: _speciesThumb(pal, s),
+                          title: s.name,
+                          subtitle: s.englishName,
+                          selected: _species == s.name,
+                          onTap: () => Navigator.pop(sheetContext, s.name),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        );
+      },
+    );
+
+    // null = the sheet was dismissed without a choice, so keep what we had.
+    if (picked == null || !mounted) return;
+    setState(() => _species = picked == _kAuto ? null : picked);
+  }
+
+  Widget _speciesThumb(AppPalette pal, FishSpecies s) {
+    const size = 48.0;
+    final fallback = Container(
+      width: size,
+      height: size,
+      color: pal.link.withValues(alpha: 0.12),
+      child: Icon(Icons.set_meal_rounded, color: pal.link),
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: s.imageAsset == null
+          ? fallback
+          : Image.asset(
+              s.imageAsset!,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              cacheWidth: 150, // small copy in memory, not the full photo
+              errorBuilder: (_, __, ___) => fallback,
+            ),
+    );
+  }
+
+  Widget _sheetTile(
+    BuildContext context, {
+    required Widget leading,
+    required String title,
+    String? subtitle,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final pal = context.pal;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected
+            ? AppColors.accent.withValues(alpha: 0.10)
+            : pal.link.withValues(alpha: 0.05),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: selected
+              ? const BorderSide(color: AppColors.accent, width: 1.6)
+              : BorderSide.none,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                leading,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: pal.text,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      if (subtitle != null)
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: pal.muted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (selected)
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: AppColors.accent,
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -271,6 +473,7 @@ class _CameraScreenState extends State<CameraScreen> {
             Positioned.fill(child: CameraPreview(_controller!)),
             Center(
               child: SizedBox(
+                key: _frameKey,
                 width: 260,
                 height: 260,
                 child: Stack(
@@ -297,21 +500,31 @@ class _CameraScreenState extends State<CameraScreen> {
                       Navigator.pop(context);
                     }
                   }),
-                  _circleIconButton(
-                    _flashOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                    _toggleFlash,
-                    active: _flashOn,
+                  KeyedSubtree(
+                    key: _flashKey,
+                    child: _circleIconButton(
+                      _flashOn
+                          ? Icons.flash_on_rounded
+                          : Icons.flash_off_rounded,
+                      _toggleFlash,
+                      active: _flashOn,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Species dropdown (SRS FR-08): Auto by default
+            // Species button (SRS FR-08): opens the bottom sheet, Auto default
             Positioned(
               top: 68,
               left: 0,
               right: 0,
-              child: Center(child: _speciesDropdown(context)),
+              child: Center(
+                child: KeyedSubtree(
+                  key: _speciesKey,
+                  child: _speciesButton(context),
+                ),
+              ),
             ),
 
             Positioned(
@@ -342,11 +555,15 @@ class _CameraScreenState extends State<CameraScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _circleIconButton(
-                    Icons.photo_library_rounded,
-                    _pickFromGallery,
+                  KeyedSubtree(
+                    key: _galleryKey,
+                    child: _circleIconButton(
+                      Icons.photo_library_rounded,
+                      _pickFromGallery,
+                    ),
                   ),
                   GestureDetector(
+                    key: _shutterKey,
                     onTap: _takePicture,
                     child: Container(
                       height: 76,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../services/language/app_language.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/coach_tour.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
@@ -23,6 +24,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final PageController _guideController = PageController();
   Timer? _autoSlide;
   int _guidePage = 0;
+
+  // Targets for the first-time tour.
+  final GlobalKey _slidesKey = GlobalKey();
+  final GlobalKey _scanKey = GlobalKey();
+  final GlobalKey _liveKey = GlobalKey();
+  final GlobalKey _infoKey = GlobalKey();
+  final GlobalKey _historyKey = GlobalKey();
 
   // Text comes from the translation table by key.
   final List<_GuideSlide> _slides = const [
@@ -54,13 +62,61 @@ class _HomeScreenState extends State<HomeScreen> {
         curve: Curves.easeOutCubic,
       );
     });
+
+    // First-time tour (shows only once).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startTour());
   }
 
   @override
   void dispose() {
+    CoachTour.dismiss(owner: this);
     _autoSlide?.cancel();
     _guideController.dispose();
     super.dispose();
+  }
+
+  void _startTour() {
+    if (!mounted) return;
+    CoachTour.showOnce(
+      context,
+      owner: this,
+      id: 'home',
+      steps: [
+        const CoachStep(
+          titleKey: 'tour_home_welcome_t',
+          bodyKey: 'tour_home_welcome_b',
+        ),
+        CoachStep(
+          target: _slidesKey,
+          titleKey: 'tour_home_slides_t',
+          bodyKey: 'tour_home_slides_b',
+        ),
+        CoachStep(
+          target: _scanKey,
+          titleKey: 'tour_home_scan_t',
+          bodyKey: 'tour_home_scan_b',
+        ),
+        CoachStep(
+          target: _liveKey,
+          titleKey: 'tour_home_live_t',
+          bodyKey: 'tour_home_live_b',
+        ),
+        CoachStep(
+          target: _infoKey,
+          titleKey: 'tour_home_info_t',
+          bodyKey: 'tour_home_info_b',
+        ),
+        CoachStep(
+          target: _historyKey,
+          titleKey: 'tour_home_history_t',
+          bodyKey: 'tour_home_history_b',
+        ),
+        const CoachStep(
+          titleKey: 'tour_home_nav_t',
+          bodyKey: 'tour_home_nav_b',
+        ),
+      ],
+    );
   }
 
   void _openHistory() {
@@ -146,6 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // How-it-works slideshow
               SizedBox(
+                key: _slidesKey,
                 height: 176,
                 child: PageView.builder(
                   controller: _guideController,
@@ -186,40 +243,52 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
 
               // Main action: full-width orange card
-              _ActionCard(
-                wide: true,
-                icon: Icons.camera_alt_rounded,
-                label: context.tr('act_scan'),
-                hint: context.tr('act_scan_hint'),
-                highlight: true,
-                onTap: () => widget.onNavigate(1),
+              KeyedSubtree(
+                key: _scanKey,
+                child: _ActionCard(
+                  wide: true,
+                  icon: Icons.camera_alt_rounded,
+                  label: context.tr('act_scan'),
+                  hint: context.tr('act_scan_hint'),
+                  highlight: true,
+                  onTap: () => widget.onNavigate(1),
+                ),
               ),
               const SizedBox(height: 14),
 
               // Row 1: Live detection + Fish Info & Guide
               _cardRow(
-                _ActionCard(
-                  icon: Icons.videocam_rounded,
-                  label: context.tr('act_live'),
-                  hint: context.tr('act_live_hint'),
-                  onTap: () => widget.onNavigate(2),
+                KeyedSubtree(
+                  key: _liveKey,
+                  child: _ActionCard(
+                    icon: Icons.videocam_rounded,
+                    label: context.tr('act_live'),
+                    hint: context.tr('act_live_hint'),
+                    onTap: () => widget.onNavigate(2),
+                  ),
                 ),
-                _ActionCard(
-                  icon: Icons.menu_book_rounded,
-                  label: context.tr('act_fishinfo'),
-                  hint: context.tr('act_fishinfo_hint'),
-                  onTap: _openFishInfo,
+                KeyedSubtree(
+                  key: _infoKey,
+                  child: _ActionCard(
+                    icon: Icons.menu_book_rounded,
+                    label: context.tr('act_fishinfo'),
+                    hint: context.tr('act_fishinfo_hint'),
+                    onTap: _openFishInfo,
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
 
               // Row 2: History + About
               _cardRow(
-                _ActionCard(
-                  icon: Icons.history_rounded,
-                  label: context.tr('act_history'),
-                  hint: context.tr('act_history_hint'),
-                  onTap: _openHistory,
+                KeyedSubtree(
+                  key: _historyKey,
+                  child: _ActionCard(
+                    icon: Icons.history_rounded,
+                    label: context.tr('act_history'),
+                    hint: context.tr('act_history_hint'),
+                    onTap: _openHistory,
+                  ),
                 ),
                 _ActionCard(
                   icon: Icons.info_outline_rounded,

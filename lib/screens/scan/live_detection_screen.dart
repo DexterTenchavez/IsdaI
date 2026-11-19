@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ultralytics_yolo/ultralytics_yolo.dart';
 import '../../services/language/app_language.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/coach_tour.dart';
 
 // ====== CHANGE COLORS HERE ======
 const Color kFreshColor = Color(0xFF22C55E); // green
@@ -57,10 +58,47 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   int _frames = 0;
   Timer? _initTimer;
 
+  // Targets for the first-time tour.
+  final GlobalKey _statusKey = GlobalKey();
+  final GlobalKey _torchKey = GlobalKey();
+  final GlobalKey _stopKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _setupWhenReady();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startTour());
+  }
+
+  void _startTour() {
+    if (!mounted) return;
+    CoachTour.showOnce(
+      context,
+      owner: this,
+      id: 'live',
+      steps: [
+        const CoachStep(
+          titleKey: 'tour_live_intro_t',
+          bodyKey: 'tour_live_intro_b',
+        ),
+        CoachStep(
+          target: _statusKey,
+          titleKey: 'tour_live_status_t',
+          bodyKey: 'tour_live_status_b',
+        ),
+        CoachStep(
+          target: _torchKey,
+          titleKey: 'tour_live_torch_t',
+          bodyKey: 'tour_live_torch_b',
+          circle: true,
+        ),
+        CoachStep(
+          target: _stopKey,
+          titleKey: 'tour_live_stop_t',
+          bodyKey: 'tour_live_stop_b',
+        ),
+      ],
+    );
   }
 
   /// The native view needs a moment to start, so retry until the controller
@@ -128,6 +166,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
 
   @override
   void dispose() {
+    CoachTour.dismiss(owner: this);
     _initTimer?.cancel();
     _detections.dispose();
     _controller.dispose();
@@ -198,9 +237,14 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
                       ),
                     ),
                   ),
-                  _circleIconButton(
-                    _torchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-                    _toggleTorch,
+                  KeyedSubtree(
+                    key: _torchKey,
+                    child: _circleIconButton(
+                      _torchOn
+                          ? Icons.flash_on_rounded
+                          : Icons.flash_off_rounded,
+                      _toggleTorch,
+                    ),
                   ),
                 ],
               ),
@@ -212,6 +256,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
               left: 16,
               right: 16,
               child: Container(
+                key: _statusKey,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
@@ -263,6 +308,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
               right: 0,
               child: Center(
                 child: ElevatedButton.icon(
+                  key: _stopKey,
                   onPressed: _close,
                   icon: const Icon(Icons.stop_rounded),
                   label: Text(context.tr('live_stop')),
