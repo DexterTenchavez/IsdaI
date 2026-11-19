@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/day_night_toggle.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
+import '../about/about_screen.dart';
 
 /// One row in the bottom-sheet picker (used for Language).
 class _Choice {
@@ -101,16 +102,9 @@ class SettingsScreen extends StatelessWidget {
   }
 
   void _showAbout(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: 'IsdaAI',
-      applicationVersion: '1.0.0',
-      applicationIcon: Image.asset(
-        'assets/logo/logo_isdaai.png',
-        width: 48,
-        height: 48,
-      ),
-      children: [Text(context.tr('home_sub'))],
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AboutScreen()),
     );
   }
 

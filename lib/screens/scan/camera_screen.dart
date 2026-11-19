@@ -118,7 +118,7 @@ class _CameraScreenState extends State<CameraScreen> {
       // If the user picked a species, use it. On Auto, keep the model's guess.
       final finalResult = _species == null
           ? result
-          : result.withSpecies(_species!);
+          : result.checkPickedSpecies(_species!);
       Navigator.push(
         context,
         MaterialPageRoute(

@@ -46,6 +46,7 @@ dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/fish_images/
     - assets/splash/
     - assets/logo/
     - assets/models/yolo_fish_detector.tflite

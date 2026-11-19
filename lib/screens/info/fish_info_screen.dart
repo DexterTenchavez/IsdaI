@@ -123,12 +123,12 @@ class FishInfoScreen extends StatelessWidget {
   }
 
   Widget _photo(AppPalette pal, FishSpecies s) {
-    const size = 64.0;
+    const size = 80.0;
     final fallback = Container(
       width: size,
       height: size,
       color: pal.link.withValues(alpha: 0.12),
-      child: Icon(Icons.set_meal_rounded, color: pal.link, size: 30),
+      child: Icon(Icons.set_meal_rounded, color: pal.link, size: 34),
     );
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
@@ -139,6 +139,7 @@ class FishInfoScreen extends StatelessWidget {
               width: size,
               height: size,
               fit: BoxFit.cover,
+              cacheWidth: 240, // decode a small copy, not the full photo
               errorBuilder: (_, __, ___) => fallback,
             ),
     );

@@ -451,6 +451,20 @@ class _ResultScreenState extends State<ResultScreen> {
         title = context.tr('multi_title');
         body = context.tr('multi_body');
         break;
+      case ScanStatus.wrongSpecies:
+        icon = Icons.swap_horiz_rounded;
+        title = context.tr(
+          'wrong_title',
+          args: {'picked': result.pickedSpecies ?? ''},
+        );
+        body = context.tr(
+          'wrong_body',
+          args: {
+            'detected': result.species ?? context.tr('species_unknown'),
+            'pct': '${(result.speciesConfidence * 100).round()}',
+          },
+        );
+        break;
       case ScanStatus.lowConfidence:
       case ScanStatus.ok:
         icon = Icons.blur_on_rounded;

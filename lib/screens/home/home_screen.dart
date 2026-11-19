@@ -6,6 +6,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
 import '../info/fish_info_screen.dart';
+import '../about/about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Switches tabs in MainNavigationWrapper:
@@ -77,11 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAbout() {
-    showAboutDialog(
-      context: context,
-      applicationName: 'IsdaAI',
-      applicationVersion: '1.0.0',
-      children: [Text(context.tr('home_sub'))],
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AboutScreen()),
     );
   }
 

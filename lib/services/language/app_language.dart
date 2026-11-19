@@ -181,6 +181,9 @@ const Map<String, String> _en = {
   'tip4': 'Smell is mild and sea-like, not sour or sharp',
   'result_subtitle_fresh': 'This fish shows signs of freshness.',
   'result_subtitle_stale': 'This fish shows signs of spoilage.',
+  'wrong_title': 'This is not {picked}',
+  'wrong_body':
+      'IsdaAI thinks this fish is {detected} ({pct}% match). Pick {detected} or Auto, then scan again.',
 
   // Recipes
   'rec_suggestions': 'Recipe suggestions',
@@ -208,6 +211,32 @@ const Map<String, String> _en = {
   'servings_none': 'Servings not listed',
   'prep_min': 'Prep {n} min',
   'cook_min': 'Cook {n} min',
+
+  // About
+  'about_title': 'About IsdaAI',
+  'about_tagline': 'Smart Fish Freshness Detection',
+  'about_version': 'Version {v}',
+  'about_desc_title': 'What is IsdaAI?',
+  'about_desc':
+      'IsdaAI is an offline app that tells you if a fish is Fresh or Stale. Take or pick a photo of the whole body, eyes, and gills of a fish, and the AI on your phone gives you a result in seconds.',
+  'about_features_title': 'Features',
+  'about_f_scan': 'Scan a photo of one fish',
+  'about_f_live': 'Live detection with the camera',
+  'about_f_history': 'Scan history saved on your phone',
+  'about_f_info': 'Fish Info & Guide',
+  'about_f_recipe': 'Recipe suggestions for fresh fish',
+  'about_f_lang': 'English and Tagalog, Light and Dark theme',
+  'about_species_title': 'Supported fish',
+  'about_species_body': 'Six species commonly found in Trinidad, Bohol.',
+  'about_offline_title': 'Offline and private',
+  'about_offline_body':
+      'The AI runs on your phone. No internet is needed, and your scans and photos stay on this device.',
+  'about_disclaimer_title': 'Please note',
+  'about_project_title': 'About the project',
+  'about_school': 'Trinidad Municipal College – College of Computer Studies',
+  'about_capstone': 'Capstone project, 2026',
+  'about_devs_title': 'Developers',
+  'about_licenses': 'View open-source licenses',
 
   // Settings
   'settings_title': 'Settings',
@@ -320,6 +349,9 @@ const Map<String, String> _tl = {
   'tip4': 'Banayad at amoy-dagat ang amoy, hindi maasim o matapang',
   'result_subtitle_fresh': 'May mga palatandaan ng kasariwaan ang isdang ito.',
   'result_subtitle_stale': 'May mga palatandaan ng pagkasira ang isdang ito.',
+  'wrong_title': 'Hindi ito {picked}',
+  'wrong_body':
+      'Sa tingin ng IsdaAI, {detected} ang isdang ito ({pct}% tugma). Piliin ang {detected} o Auto, saka mag-scan muli.',
 
   // Recipes
   'rec_suggestions': 'Mga mungkahing recipe',
@@ -348,6 +380,32 @@ const Map<String, String> _tl = {
   'servings_none': 'Walang nakalistang servings',
   'prep_min': 'Paghahanda {n} min',
   'cook_min': 'Pagluluto {n} min',
+
+  // About
+  'about_title': 'Tungkol sa IsdaAI',
+  'about_tagline': 'Matalinong Pagtuklas ng Kasariwaan ng Isda',
+  'about_version': 'Bersyon {v}',
+  'about_desc_title': 'Ano ang IsdaAI?',
+  'about_desc':
+      'Ang IsdaAI ay isang offline na app na nagsasabi kung sariwa o bilasa ang isda. Kumuha o pumili ng litrato ng buong katawan, mata, at hasang ng isda, at magbibigay ang AI sa telepono mo ng resulta sa loob ng ilang segundo.',
+  'about_features_title': 'Mga Tampok',
+  'about_f_scan': 'Mag-scan ng litrato ng isang isda',
+  'about_f_live': 'Live detection gamit ang kamera',
+  'about_f_history': 'Kasaysayan ng scan na naka-save sa telepono mo',
+  'about_f_info': 'Impormasyon at Gabay sa Isda',
+  'about_f_recipe': 'Mga mungkahing recipe para sa sariwang isda',
+  'about_f_lang': 'English at Tagalog, Maliwanag at Madilim na tema',
+  'about_species_title': 'Mga sinusuportahang isda',
+  'about_species_body': 'Anim na uri ng isdang karaniwan sa Trinidad, Bohol.',
+  'about_offline_title': 'Offline at pribado',
+  'about_offline_body':
+      'Tumatakbo ang AI sa mismong telepono mo. Hindi kailangan ng internet, at nananatili sa device na ito ang mga scan at litrato mo.',
+  'about_disclaimer_title': 'Pakitandaan',
+  'about_project_title': 'Tungkol sa proyekto',
+  'about_school': 'Trinidad Municipal College – College of Computer Studies',
+  'about_capstone': 'Capstone project, 2026',
+  'about_devs_title': 'Mga Developer',
+  'about_licenses': 'Tingnan ang mga open-source license',
 
   // Settings
   'settings_title': 'Mga Setting',

@@ -4,13 +4,20 @@ import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 import 'package:image/image.dart' as img;
 
 // --- 1. Define the Status Enum ---
-enum ScanStatus { ok, notFish, multipleFish, lowConfidence }
+enum ScanStatus { ok, notFish, multipleFish, lowConfidence, wrongSpecies }
 
 // --- 2. Define the Result Class ---
 class ClassificationResult {
   final ScanStatus status;
   final String topLabel;
+
+  /// Normal result: the species used for the scan.
+  /// wrongSpecies result: the species the model detected instead.
   final String? species;
+
+  /// Only set for a wrongSpecies result: the species the user picked.
+  final String? pickedSpecies;
+
   final bool isFresh;
   final double freshnessConfidence;
   final double speciesConfidence;
@@ -19,6 +26,7 @@ class ClassificationResult {
     required this.status,
     required this.topLabel,
     this.species,
+    this.pickedSpecies,
     this.isFresh = false,
     this.freshnessConfidence = 0,
     this.speciesConfidence = 0,
@@ -33,6 +41,34 @@ class ClassificationResult {
     freshnessConfidence: freshnessConfidence,
     speciesConfidence: 1.0,
   );
+
+  /// Compares the species the user picked with the model's own guess.
+  ///  - Not_Fish / Multiple_Fish keep their own message.
+  ///  - The model is confident it is a different species: wrongSpecies
+  ///    (no freshness result is shown).
+  ///  - Otherwise the user's pick is used, like before.
+  ClassificationResult checkPickedSpecies(String picked) {
+    if (status == ScanStatus.notFish || status == ScanStatus.multipleFish) {
+      return this;
+    }
+
+    final guess = species;
+    final different =
+        guess != null && guess.toLowerCase() != picked.toLowerCase();
+
+    if (different &&
+        speciesConfidence >= ClassifierService.wrongSpeciesThreshold) {
+      return ClassificationResult(
+        status: ScanStatus.wrongSpecies,
+        topLabel: topLabel,
+        species: guess,
+        pickedSpecies: picked,
+        speciesConfidence: speciesConfidence,
+      );
+    }
+
+    return withSpecies(picked);
+  }
 }
 
 class ClassifierService {
@@ -42,6 +78,12 @@ class ClassifierService {
 
   static const double _rejectThreshold = 0.5;
   static const double _minFreshnessConfidence = 0.6;
+
+  /// How sure the model must be that the fish is a DIFFERENT species than the
+  /// one the user picked before we say "This is not <species>".
+  /// Raise it (0.8) if it rejects correct picks too often,
+  /// lower it (0.6) if wrong picks slip through.
+  static const double wrongSpeciesThreshold = 0.7;
 
   OrtSession? _session;
   List<String> _labels = [];
@@ -211,7 +253,7 @@ class ClassifierService {
       );
     }
 
-    // 2) Best species (the camera screen replaces this with the user's pick)
+    // 2) Best species (the camera screen compares this with the user's pick)
     String? bestSpecies;
     double bestSpeciesProb = 0;
     speciesProb.forEach((name, p) {

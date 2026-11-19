@@ -1,9 +1,9 @@
 /// The six fish species IsdaAI supports (SRS FR-08, FR-32).
 /// Used by the species picker on the camera screen and by Fish Info & Guide.
 ///
-/// To add a photo for a species, put the image in assets/fish/ (declare the
-/// folder in pubspec.yaml) and set imageAsset, e.g. 'assets/fish/bangus.png'.
-/// Without it the screen shows a fish icon.
+/// Photos live in assets/fish_images/ (the folder is declared in pubspec.yaml).
+/// The file names are case-sensitive on Android. If a photo is missing or the
+/// name is wrong, the screen shows a fish icon instead.
 class FishSpecies {
   final String name; // must match the labels / recipe species names
   final String? englishName;
@@ -24,6 +24,7 @@ const List<FishSpecies> supportedSpecies = [
   FishSpecies(
     name: 'Bangus',
     englishName: 'Milkfish',
+    imageAsset: 'assets/fish_images/Bangus.jpg',
     descEn:
         'The national fish of the Philippines. Silvery body, widely farmed in ponds and pens and sold fresh in markets. Often fried, grilled, or cooked as sinigang.',
     descTl:
@@ -31,6 +32,7 @@ const List<FishSpecies> supportedSpecies = [
   ),
   FishSpecies(
     name: 'Tilapia',
+    imageAsset: 'assets/fish_images/Tilapia.jpg',
     descEn:
         'A freshwater fish widely farmed in ponds and cages. Mild-tasting and common in local markets. Often fried, grilled, or cooked in sweet and sour sauce.',
     descTl:
@@ -39,6 +41,7 @@ const List<FishSpecies> supportedSpecies = [
   FishSpecies(
     name: 'Andohaw',
     englishName: 'Mackerel',
+    imageAsset: 'assets/fish_images/Anduhaw.jpg',
     descEn:
         'A mackerel-type fish with a slim, streamlined body. Often cooked fried, in coconut milk, or as fish steak.',
     descTl:
@@ -46,6 +49,7 @@ const List<FishSpecies> supportedSpecies = [
   ),
   FishSpecies(
     name: 'Timbungan',
+    imageAsset: 'assets/fish_images/Timbungan.jpg',
     descEn:
         'A fish commonly sold in the markets of Trinidad, Bohol. Often cooked as paksiw, fried, or in coconut milk.',
     descTl:
@@ -54,6 +58,7 @@ const List<FishSpecies> supportedSpecies = [
   FishSpecies(
     name: 'Silay',
     englishName: 'Bisugo',
+    imageAsset: 'assets/fish_images/Silay.jpg',
     descEn:
         'Also called bisugo. Often fried, stewed in vinegar (paksiw), or dried as daing for breakfast.',
     descTl:
@@ -61,6 +66,7 @@ const List<FishSpecies> supportedSpecies = [
   ),
   FishSpecies(
     name: 'Carabalyas',
+    imageAsset: 'assets/fish_images/Carabalyas.jpg',
     descEn:
         'A fish commonly sold in the markets of Trinidad, Bohol. Often cooked as paksiw, fried, or in coconut milk.',
     descTl:
