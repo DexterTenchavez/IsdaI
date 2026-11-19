@@ -151,9 +151,7 @@ class _ResultScreenState extends State<ResultScreen> {
               if (_isFreshOk) ...[
                 ElevatedButton.icon(
                   onPressed: () {
-                    final species = result.speciesConfidence < 0.5
-                        ? null
-                        : result.species;
+                    final species = result.species;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -288,70 +286,79 @@ class _ResultScreenState extends State<ResultScreen> {
     final pal = context.pal;
     final fresh = result.isFresh;
     final color = fresh ? pal.good : pal.bad;
-    final speciesName = result.speciesConfidence < 0.5
-        ? context.tr('species_unclear')
-        : (result.species ?? context.tr('species_unknown'));
+
+    // Species is user-selected per SRS FR-08 — not matched by the model.
+    final speciesLabel = (result.species == null || result.species!.isEmpty)
+        ? context.tr('species_unknown')
+        : result.species!;
 
     return _card(
       context,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  fresh ? Icons.check_circle_rounded : Icons.warning_rounded,
-                  color: color,
-                  size: 20,
+          // Badge + subtitle (matches Fig 9.0)
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
                 ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    context.tr(fresh ? 'badge_fresh' : 'badge_stale'),
-                    style: TextStyle(
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      fresh
+                          ? Icons.check_circle_rounded
+                          : Icons.warning_rounded,
                       color: color,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
+                      size: 20,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.tr(fresh ? 'badge_fresh' : 'badge_stale'),
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            context.tr(
+              fresh ? 'result_subtitle_fresh' : 'result_subtitle_stale',
             ),
+            style: TextStyle(color: pal.muted, fontSize: 14, height: 1.4),
           ),
           const SizedBox(height: 16),
-          Text(
-            context.tr('fish_label'),
-            style: TextStyle(color: pal.muted, fontSize: 13),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            speciesName,
-            style: TextStyle(
-              color: pal.text,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 20),
+
+          // Single confidence meter (Fresh)
           _meter(
             context,
             context.tr('meter_fresh'),
             result.freshnessConfidence,
             color,
           ),
-          const SizedBox(height: 16),
-          _meter(
-            context,
-            context.tr('meter_species'),
-            result.speciesConfidence,
-            AppColors.primaryLight,
+          const SizedBox(height: 8),
+
+          // Species line — same card, small text (matches Fig 9.0)
+          Text(
+            '${context.tr('Species')}: $speciesLabel',
+            style: TextStyle(
+              color: pal.text,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

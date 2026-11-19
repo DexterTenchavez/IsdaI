@@ -32,7 +32,12 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   /// If the boxes look shifted or stretched, try 9 / 16 or 4 / 3 here.
   static const double _cameraAspect = 3 / 4;
 
-  // ====== MULTI-FISH SETTINGS ======
+  // ====== DETECTION SETTINGS ======
+  /// Boxes below this confidence are hidden.
+  /// Raise it (0.6) if you see false detections,
+  /// lower it (0.4) if real fish are missed.
+  static const double _confidenceThreshold = 0.5;
+
   /// How much two boxes may overlap before one is removed.
   /// Higher = keeps more overlapping fish (good for piles).
   /// If you see double boxes on the same fish, lower it (e.g. 0.5).
@@ -48,7 +53,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
   final ValueNotifier<List<YOLOResult>> _detections =
       ValueNotifier<List<YOLOResult>>(const []);
 
-  double _threshold = 0.25; // raise to reduce clutter, lower to detect more
   bool _torchOn = false;
   int _frames = 0;
   Timer? _initTimer;
@@ -71,7 +75,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
           // hide the plugin's own (blue, non-recolorable) boxes; we draw ours
           await _controller.setShowOverlays(false);
           await _controller.setThresholds(
-            confidenceThreshold: _threshold,
+            confidenceThreshold: _confidenceThreshold,
             iouThreshold: _iouThreshold,
             numItemsThreshold: _maxItems,
           );
@@ -83,14 +87,6 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
         debugPrint('YOLOViewController never initialized');
       }
     });
-  }
-
-  Future<void> _applyThreshold(double value) async {
-    try {
-      await _controller.setConfidenceThreshold(value);
-    } catch (e) {
-      debugPrint('Failed to set threshold: $e');
-    }
   }
 
   void _onResults(List<YOLOResult> results) {
@@ -210,7 +206,7 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
               ),
             ),
 
-            // Status panel + confidence slider
+            // Status panel
             Positioned(
               bottom: 100,
               left: 16,
@@ -218,79 +214,44 @@ class _LiveDetectionScreenState extends State<LiveDetectionScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
-                  vertical: 10,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ValueListenableBuilder<List<YOLOResult>>(
-                      valueListenable: _detections,
-                      builder: (_, results, __) {
-                        if (results.isEmpty) {
-                          return Text(
-                            context.tr(
-                              'live_none',
-                              args: {'frames': '$_frames'},
-                            ),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          );
-                        }
-                        final best = _best(results);
-                        final fresh = isFreshResult(best);
-                        return Text(
-                          context.tr(
-                            'live_found',
-                            args: {
-                              'count': '${results.length}',
-                              'label': fresh ? freshLabel : staleLabel,
-                              'pct': (best.confidence * 100).toStringAsFixed(0),
-                            },
-                          ),
-                          style: TextStyle(
-                            color: fresh ? kFreshColor : kStaleColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        );
-                      },
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          context.tr('live_min_conf'),
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
+                child: ValueListenableBuilder<List<YOLOResult>>(
+                  valueListenable: _detections,
+                  builder: (_, results, __) {
+                    if (results.isEmpty) {
+                      return Text(
+                        context.tr('live_none', args: {'frames': '$_frames'}),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
                         ),
-                        Expanded(
-                          child: Slider(
-                            value: _threshold,
-                            min: 0.05,
-                            max: 0.9,
-                            divisions: 17,
-                            label: _threshold.toStringAsFixed(2),
-                            onChanged: (v) => setState(() => _threshold = v),
-                            onChangeEnd: _applyThreshold,
-                          ),
-                        ),
-                        Text(
-                          _threshold.toStringAsFixed(2),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      );
+                    }
+                    final best = _best(results);
+                    final fresh = isFreshResult(best);
+                    return Text(
+                      context.tr(
+                        'live_found',
+                        args: {
+                          'count': '${results.length}',
+                          'label': fresh ? freshLabel : staleLabel,
+                          'pct': (best.confidence * 100).toStringAsFixed(0),
+                        },
+                      ),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: fresh ? kFreshColor : kStaleColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
