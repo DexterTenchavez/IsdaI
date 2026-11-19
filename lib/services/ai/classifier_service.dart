@@ -23,6 +23,16 @@ class ClassificationResult {
     this.freshnessConfidence = 0,
     this.speciesConfidence = 0,
   });
+
+  /// Species is user-selected (SRS FR-08), so replace whatever the model guessed.
+  ClassificationResult withSpecies(String selected) => ClassificationResult(
+    status: status,
+    topLabel: topLabel,
+    species: selected,
+    isFresh: isFresh,
+    freshnessConfidence: freshnessConfidence,
+    speciesConfidence: 1.0,
+  );
 }
 
 class ClassifierService {
@@ -201,7 +211,7 @@ class ClassifierService {
       );
     }
 
-    // 2) Best species
+    // 2) Best species (the camera screen replaces this with the user's pick)
     String? bestSpecies;
     double bestSpeciesProb = 0;
     speciesProb.forEach((name, p) {

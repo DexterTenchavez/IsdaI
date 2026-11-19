@@ -127,6 +127,19 @@ const Map<String, String> _en = {
   'cam_analyze_fail': 'Failed to analyze image.',
   'cam_wrong': 'Something went wrong: {error}',
   'cam_flash_na': 'Flash is not available on this device.',
+  'cam_pick_species': 'Choose the fish species first.',
+  'species_label': 'Species',
+  'act_fishinfo': 'Fish Info & Guide',
+  'act_fishinfo_hint': 'Learn the 6 supported fish',
+  'fishinfo_title': 'Fish Info & Guide',
+  'fishinfo_species_title': 'Supported species',
+  'fishinfo_guide_title': 'How to take a clear photo',
+  'guide_step1': 'Scan one fish at a time.',
+  'guide_step2': 'Show the whole body, the eye, and the gills.',
+  'guide_step3': 'Use good light. Turn on the flash if it is dim.',
+  'guide_step4':
+      'Hold the phone steady and move close enough to see the eye clearly.',
+  'guide_step5': 'Choose the fish species first, then take or pick the photo.',
 
   // Live scan
   'live_none': 'No detections (frames: {frames})',
@@ -166,6 +179,8 @@ const Map<String, String> _en = {
   'tip2': 'Gills are bright red or pink, not brown or gray',
   'tip3': 'Flesh is firm and springs back when pressed',
   'tip4': 'Smell is mild and sea-like, not sour or sharp',
+  'result_subtitle_fresh': 'This fish shows signs of freshness.',
+  'result_subtitle_stale': 'This fish shows signs of spoilage.',
 
   // Recipes
   'rec_suggestions': 'Recipe suggestions',
@@ -250,6 +265,20 @@ const Map<String, String> _tl = {
   'cam_analyze_fail': 'Hindi na-analyze ang larawan.',
   'cam_wrong': 'May nangyaring mali: {error}',
   'cam_flash_na': 'Walang flash ang device na ito.',
+  'cam_pick_species': 'Piliin muna ang uri ng isda.',
+  'species_label': 'Uri',
+  'act_fishinfo': 'Impormasyon at Gabay sa Isda',
+  'act_fishinfo_hint': 'Alamin ang 6 na sinusuportahang isda',
+  'fishinfo_title': 'Impormasyon at Gabay sa Isda',
+  'fishinfo_species_title': 'Mga sinusuportahang isda',
+  'fishinfo_guide_title': 'Paano kumuha ng malinaw na litrato',
+  'guide_step1': 'Mag-scan ng isang isda lang.',
+  'guide_step2': 'Ipakita ang buong katawan, ang mata, at ang hasang.',
+  'guide_step3': 'Gumamit ng sapat na liwanag. Buksan ang flash kung madilim.',
+  'guide_step4':
+      'Panatilihing steady ang telepono at lumapit para malinaw ang mata.',
+  'guide_step5':
+      'Piliin muna ang uri ng isda, saka kumuha o pumili ng litrato.',
 
   // Live scan
   'live_none': 'Walang natuklasan (frames: {frames})',
@@ -289,6 +318,8 @@ const Map<String, String> _tl = {
   'tip2': 'Matingkad na pula o rosas ang hasang, hindi kayumanggi o abo',
   'tip3': 'Matigas ang laman at bumabalik kapag pinindot',
   'tip4': 'Banayad at amoy-dagat ang amoy, hindi maasim o matapang',
+  'result_subtitle_fresh': 'May mga palatandaan ng kasariwaan ang isdang ito.',
+  'result_subtitle_stale': 'May mga palatandaan ng pagkasira ang isdang ito.',
 
   // Recipes
   'rec_suggestions': 'Mga mungkahing recipe',

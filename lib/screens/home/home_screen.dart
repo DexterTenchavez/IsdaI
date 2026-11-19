@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
+import '../info/fish_info_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Switches tabs in MainNavigationWrapper:
@@ -68,6 +69,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _openFishInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const FishInfoScreen()),
+    );
+  }
+
   void _showAbout() {
     showAboutDialog(
       context: context,
@@ -115,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
               Text(
                 context.tr('home_title'),
                 style: const TextStyle(
@@ -135,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
 
               // How-it-works slideshow
               SizedBox(
@@ -167,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
               ),
 
-              const SizedBox(height: 28),
+              const SizedBox(height: 26),
               Text(
                 context.tr('quick_actions'),
                 style: const TextStyle(
@@ -178,44 +186,66 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 12),
 
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 1.1,
-                children: [
-                  _ActionCard(
-                    icon: Icons.camera_alt_rounded,
-                    label: context.tr('act_scan'),
-                    hint: context.tr('act_scan_hint'),
-                    highlight: true,
-                    onTap: () => widget.onNavigate(1),
-                  ),
-                  _ActionCard(
-                    icon: Icons.videocam_rounded,
-                    label: context.tr('act_live'),
-                    hint: context.tr('act_live_hint'),
-                    onTap: () => widget.onNavigate(2),
-                  ),
-                  _ActionCard(
-                    icon: Icons.history_rounded,
-                    label: context.tr('act_history'),
-                    hint: context.tr('act_history_hint'),
-                    onTap: _openHistory,
-                  ),
-                  _ActionCard(
-                    icon: Icons.info_outline_rounded,
-                    label: context.tr('act_about'),
-                    hint: context.tr('act_about_hint'),
-                    onTap: _showAbout,
-                  ),
-                ],
+              // Main action: full-width orange card
+              _ActionCard(
+                wide: true,
+                icon: Icons.camera_alt_rounded,
+                label: context.tr('act_scan'),
+                hint: context.tr('act_scan_hint'),
+                highlight: true,
+                onTap: () => widget.onNavigate(1),
+              ),
+              const SizedBox(height: 14),
+
+              // Row 1: Live detection + Fish Info & Guide
+              _cardRow(
+                _ActionCard(
+                  icon: Icons.videocam_rounded,
+                  label: context.tr('act_live'),
+                  hint: context.tr('act_live_hint'),
+                  onTap: () => widget.onNavigate(2),
+                ),
+                _ActionCard(
+                  icon: Icons.menu_book_rounded,
+                  label: context.tr('act_fishinfo'),
+                  hint: context.tr('act_fishinfo_hint'),
+                  onTap: _openFishInfo,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Row 2: History + About
+              _cardRow(
+                _ActionCard(
+                  icon: Icons.history_rounded,
+                  label: context.tr('act_history'),
+                  hint: context.tr('act_history_hint'),
+                  onTap: _openHistory,
+                ),
+                _ActionCard(
+                  icon: Icons.info_outline_rounded,
+                  label: context.tr('act_about'),
+                  hint: context.tr('act_about_hint'),
+                  onTap: _showAbout,
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Two equal cards side by side, same height.
+  Widget _cardRow(Widget left, Widget right) {
+    return SizedBox(
+      height: 150,
+      child: Row(
+        children: [
+          Expanded(child: left),
+          const SizedBox(width: 14),
+          Expanded(child: right),
+        ],
       ),
     );
   }
@@ -284,11 +314,15 @@ class _GuideCard extends StatelessWidget {
   }
 }
 
+/// A quick-action card.
+///  - wide: false -> compact square-ish card (icon on top, text below)
+///  - wide: true  -> full-width card (icon left, text middle, arrow right)
 class _ActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String hint;
   final bool highlight;
+  final bool wide;
   final VoidCallback onTap;
 
   const _ActionCard({
@@ -297,6 +331,7 @@ class _ActionCard extends StatelessWidget {
     required this.hint,
     required this.onTap,
     this.highlight = false,
+    this.wide = false,
   });
 
   @override
@@ -312,6 +347,40 @@ class _ActionCard extends StatelessWidget {
         : pal.link.withValues(alpha: 0.12);
     final iconFg = highlight ? Colors.white : pal.link;
 
+    final iconBox = Container(
+      padding: EdgeInsets.all(wide ? 14 : 10),
+      decoration: BoxDecoration(
+        color: iconBg,
+        borderRadius: BorderRadius.circular(wide ? 16 : 12),
+      ),
+      child: Icon(icon, color: iconFg, size: wide ? 30 : 22),
+    );
+
+    final texts = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: fg,
+            fontWeight: FontWeight.w700,
+            fontSize: wide ? 18 : 15,
+            height: 1.15,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          hint,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: sub, fontSize: 12, height: 1.25),
+        ),
+      ],
+    );
+
     return GlassCard(
       radius: 20,
       padding: const EdgeInsets.all(16),
@@ -320,35 +389,20 @@ class _ActionCard extends StatelessWidget {
       opacity: highlight ? 1.2 : 2.0,
       tint: highlight ? AppColors.accent : null,
       fill: highlight ? AppColors.accent.withValues(alpha: 0.7) : null,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(12),
+      child: wide
+          ? Row(
+              children: [
+                iconBox,
+                const SizedBox(width: 16),
+                Expanded(child: texts),
+                Icon(Icons.chevron_right_rounded, color: fg, size: 28),
+              ],
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [iconBox, texts],
             ),
-            child: Icon(icon, color: iconFg, size: 22),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: fg,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(hint, style: TextStyle(color: sub, fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

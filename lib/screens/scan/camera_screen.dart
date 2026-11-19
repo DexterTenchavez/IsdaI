@@ -7,6 +7,18 @@ import '../../services/language/app_language.dart';
 import '../../services/ai/classifier_service.dart';
 import 'result_screen.dart';
 
+const List<String> kSpeciesNames = [
+  'Bangus',
+  'Tilapia',
+  'Andohaw',
+  'Timbungan',
+  'Silay',
+  'Carabalyas',
+];
+
+/// Dropdown value that means "let the model guess the species".
+const String _kAuto = '__auto__';
+
 class CameraScreen extends StatefulWidget {
   final VoidCallback? onClose;
   const CameraScreen({super.key, this.onClose});
@@ -21,6 +33,10 @@ class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
   bool _flashOn = false;
+
+  /// Species chosen by the user (SRS FR-08).
+  /// null = Auto (the model's own guess is used).
+  String? _species;
 
   late final Future<void> _modelFuture;
 
@@ -99,10 +115,15 @@ class _CameraScreenState extends State<CameraScreen> {
 
     if (!mounted) return;
     if (result != null) {
+      // If the user picked a species, use it. On Auto, keep the model's guess.
+      final finalResult = _species == null
+          ? result
+          : result.withSpecies(_species!);
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ResultScreen(result: result, imagePath: file.path),
+          builder: (_) =>
+              ResultScreen(result: finalResult, imagePath: file.path),
         ),
       );
     } else {
@@ -166,6 +187,73 @@ class _CameraScreenState extends State<CameraScreen> {
     super.dispose();
   }
 
+  /// Species dropdown (SRS FR-08). Default = Auto.
+  Widget _speciesDropdown(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _species ?? _kAuto,
+          dropdownColor: const Color(0xFF16253F),
+          borderRadius: BorderRadius.circular(16),
+          iconEnabledColor: Colors.white,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          selectedItemBuilder: (_) => [
+            _selectedLabel(
+              '${context.tr('species_label')}: '
+              '${context.tr('Auto')}',
+            ),
+            for (final s in kSpeciesNames)
+              _selectedLabel('${context.tr('species_label')}: $s'),
+          ],
+          items: [
+            DropdownMenuItem<String>(
+              value: _kAuto,
+              child: Text(context.tr('Auto')),
+            ),
+            for (final s in kSpeciesNames)
+              DropdownMenuItem<String>(value: s, child: Text(s)),
+          ],
+          onChanged: (v) {
+            if (v == null) return;
+            setState(() => _species = v == _kAuto ? null : v);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _selectedLabel(String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.set_meal_rounded, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
@@ -217,6 +305,15 @@ class _CameraScreenState extends State<CameraScreen> {
                 ],
               ),
             ),
+
+            // Species dropdown (SRS FR-08): Auto by default
+            Positioned(
+              top: 68,
+              left: 0,
+              right: 0,
+              child: Center(child: _speciesDropdown(context)),
+            ),
+
             Positioned(
               bottom: 124,
               left: 0,

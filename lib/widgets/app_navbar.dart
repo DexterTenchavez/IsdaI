@@ -18,10 +18,23 @@ class AppNavBar extends StatelessWidget {
   static const double _barHeight = 68;
   static const int _itemCount = 4;
 
+  // Icon colors. In light mode the bar sits on bright blue water, so the
+  // icons need to be dark enough to read on the white glass.
+  static Color unselectedColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? context.pal.muted : const Color(0xFF3B4A63);
+  }
+
+  static Color selectedColor(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? context.pal.link : AppColors.primary;
+  }
+
   @override
   Widget build(BuildContext context) {
     final view = MediaQuery.viewPaddingOf(context);
     final threeButton = view.bottom >= _threeButtonInset;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bottomGap = threeButton
         ? view.bottom + 10
@@ -32,6 +45,11 @@ class AppNavBar extends StatelessWidget {
 
     final pal = context.pal;
 
+    // Extra solid layer so the icons don't blur into the water behind.
+    final readableFill = isDark
+        ? Colors.transparent
+        : Colors.white.withValues(alpha: 0.62);
+
     return Padding(
       padding: EdgeInsets.fromLTRB(leftGap, 0, rightGap, bottomGap),
       child: LiquidGlass(
@@ -41,47 +59,50 @@ class AppNavBar extends StatelessWidget {
         blur: 16,
         // A bit more solid in 3-button mode so it doesn't blur into the buttons
         opacity: threeButton ? 1.3 : 1.0,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final slotW = constraints.maxWidth / _itemCount;
-            const inset = 6.0;
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: readableFill),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final slotW = constraints.maxWidth / _itemCount;
+              const inset = 6.0;
 
-            return Stack(
-              children: [
-                // Liquid "lens" that slides (with a little overshoot) to the
-                // selected item.
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 520),
-                  curve: Curves.easeOutBack,
-                  left: currentIndex * slotW + inset,
-                  top: 7,
-                  width: slotW - inset * 2,
-                  height: _barHeight - 14,
-                  child: const _LensPill(),
-                ),
-                Row(
-                  children: [
-                    _slot(
-                      child: _icon(context, Icons.home_rounded, 0),
-                      index: 0,
-                    ),
-                    _slot(
-                      child: _icon(context, Icons.camera_alt_rounded, 1),
-                      index: 1,
-                    ),
-                    _slot(
-                      child: _LiveIcon(selected: currentIndex == 2),
-                      index: 2,
-                    ),
-                    _slot(
-                      child: _icon(context, Icons.settings_rounded, 3),
-                      index: 3,
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
+              return Stack(
+                children: [
+                  // Liquid "lens" that slides (with a little overshoot) to the
+                  // selected item.
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 520),
+                    curve: Curves.easeOutBack,
+                    left: currentIndex * slotW + inset,
+                    top: 7,
+                    width: slotW - inset * 2,
+                    height: _barHeight - 14,
+                    child: const _LensPill(),
+                  ),
+                  Row(
+                    children: [
+                      _slot(
+                        child: _icon(context, Icons.home_rounded, 0),
+                        index: 0,
+                      ),
+                      _slot(
+                        child: _icon(context, Icons.camera_alt_rounded, 1),
+                        index: 1,
+                      ),
+                      _slot(
+                        child: _LiveIcon(selected: currentIndex == 2),
+                        index: 2,
+                      ),
+                      _slot(
+                        child: _icon(context, Icons.settings_rounded, 3),
+                        index: 3,
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -98,8 +119,9 @@ class AppNavBar extends StatelessWidget {
   }
 
   Widget _icon(BuildContext context, IconData icon, int index) {
-    final pal = context.pal;
     final selected = currentIndex == index;
+    final off = unselectedColor(context);
+    final on = selectedColor(context);
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(end: selected ? 1 : 0),
       duration: const Duration(milliseconds: 300),
@@ -109,7 +131,7 @@ class AppNavBar extends StatelessWidget {
         child: Icon(
           icon,
           size: 26,
-          color: Color.lerp(pal.muted, pal.link, t.clamp(0.0, 1.0)),
+          color: Color.lerp(off, on, t.clamp(0.0, 1.0)),
         ),
       ),
     );
@@ -124,20 +146,26 @@ class _LensPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     const r = 26.0;
+
+    // Light mode: a soft blue bubble (white on white would be invisible).
+    final top = isDark
+        ? Colors.white.withValues(alpha: 0.22)
+        : AppColors.primary.withValues(alpha: 0.20);
+    final bottom = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : AppColors.primary.withValues(alpha: 0.08);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(r),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: isDark ? 0.22 : 0.55),
-            Colors.white.withValues(alpha: isDark ? 0.06 : 0.16),
-          ],
+          colors: [top, bottom],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.10),
+            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -178,8 +206,9 @@ class _LiveIconState extends State<_LiveIcon>
 
   @override
   Widget build(BuildContext context) {
-    final pal = context.pal;
-    final color = widget.selected ? pal.link : pal.muted;
+    final color = widget.selected
+        ? AppNavBar.selectedColor(context)
+        : AppNavBar.unselectedColor(context);
 
     return Stack(
       clipBehavior: Clip.none,

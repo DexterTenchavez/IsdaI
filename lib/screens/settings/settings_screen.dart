@@ -5,7 +5,6 @@ import '../../theme/app_theme.dart';
 import '../../widgets/day_night_toggle.dart';
 import '../../widgets/underwater_background.dart';
 import '../history/history_screen.dart';
-import 'storage_screen.dart';
 
 /// One row in the bottom-sheet picker (used for Language).
 class _Choice {
@@ -170,16 +169,6 @@ class SettingsScreen extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                  ),
-                ),
-                _tile(
-                  context,
-                  Icons.storage_rounded,
-                  context.tr('set_storage'),
-                  context.tr('set_storage_sub'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const StorageScreen()),
                   ),
                 ),
                 const SizedBox(height: 20),
