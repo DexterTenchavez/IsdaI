@@ -247,6 +247,64 @@ const Map<String, String> _en = {
   'set_about': 'About IsdaAI',
   'set_about_sub': 'App info & version',
   'lang_choose': 'Choose language',
+
+  // First-time tours
+  'tour_next': 'Next',
+  'tour_skip': 'Skip',
+  'tour_done': 'Got it',
+  'tour_step': '{n} of {total}',
+  'set_guide_done': 'Done. The guide will show again on each screen.',
+  'tour_home_welcome_t': 'Welcome to IsdaAI',
+  'tour_home_welcome_b': 'Let us show you around. It takes less than a minute.',
+  'tour_home_slides_t': 'Quick tips',
+  'tour_home_slides_b': 'Swipe these cards to see how IsdaAI works.',
+  'tour_home_scan_t': 'Scan a photo',
+  'tour_home_scan_b':
+      'Your main button. It opens the camera so you can take or pick a photo of a fish.',
+  'tour_home_live_t': 'Live detection',
+  'tour_home_live_b':
+      'Point the camera at fish and see Fresh or Stale boxes in real time.',
+  'tour_home_info_t': 'Fish Info & Guide',
+  'tour_home_info_b':
+      'Learn about the 6 supported fish and how to take a clear photo.',
+  'tour_home_history_t': 'History',
+  'tour_home_history_b':
+      'Your saved scans are kept here. They stay on your phone.',
+  'tour_home_nav_t': 'Move around',
+  'tour_home_nav_b':
+      'Use the bar at the bottom to switch between Home, Camera, Live detection, and Settings.',
+  'tour_cam_frame_t': 'Fit one fish in the frame',
+  'tour_cam_frame_b':
+      'Place one fish inside the corners and show its eye and gills.',
+  'tour_cam_species_t': 'Species picker',
+  'tour_cam_species_b':
+      'Tap to choose the fish species. Leave it on Auto and IsdaAI will guess. If you pick a species and the fish looks like another one, IsdaAI will tell you.',
+  'tour_cam_flash_t': 'Flash',
+  'tour_cam_flash_b':
+      'Turn on the light when it is dim so the eye and gills are clear.',
+  'tour_cam_gallery_t': 'Gallery',
+  'tour_cam_gallery_b':
+      'Pick a photo you already have instead of using the camera.',
+  'tour_cam_shutter_t': 'Take the photo',
+  'tour_cam_shutter_b': 'Tap to scan. The result shows up in a few seconds.',
+  'tour_live_intro_t': 'Live detection',
+  'tour_live_intro_b':
+      'The camera checks fish all the time. A green box means Fresh and a red box means Stale.',
+  'tour_live_status_t': 'Status',
+  'tour_live_status_b':
+      'Shows how many fish were found and the result with the highest confidence.',
+  'tour_live_torch_t': 'Light',
+  'tour_live_torch_b': 'Turn on the light if it is dim.',
+  'tour_live_stop_t': 'Stop',
+  'tour_live_stop_b': 'Tap here to stop and go back.',
+  'tour_res_verdict_t': 'Your result',
+  'tour_res_verdict_b':
+      'Shows if the fish is Fresh or Stale, how sure the AI is, and the species.',
+  'tour_res_save_t': 'Save to history',
+  'tour_res_save_b': 'Keep this scan on your phone so you can open it later.',
+  'tour_res_recipe_t': 'Recipe ideas',
+  'tour_res_recipe_b': 'For fresh fish, get recipes that match the species.',
+
   ...historyEn,
 };
 
@@ -408,5 +466,68 @@ const Map<String, String> _tl = {
   'set_about': 'Tungkol sa IsdaAI',
   'set_about_sub': 'Impormasyon at bersyon ng app',
   'lang_choose': 'Piliin ang wika',
+
+  // First-time tours
+  'tour_next': 'Susunod',
+  'tour_skip': 'Laktawan',
+  'tour_done': 'Sige',
+  'tour_step': '{n} ng {total}',
+  'set_guide_done': 'Tapos na. Lalabas muli ang gabay sa bawat screen.',
+  'tour_home_welcome_t': 'Maligayang pagdating sa IsdaAI',
+  'tour_home_welcome_b':
+      'Ipapakita namin sa iyo ang app. Wala pang isang minuto ito.',
+  'tour_home_slides_t': 'Mabilisang tips',
+  'tour_home_slides_b':
+      'I-swipe ang mga card na ito para makita kung paano gumagana ang IsdaAI.',
+  'tour_home_scan_t': 'Mag-scan ng litrato',
+  'tour_home_scan_b':
+      'Ang pangunahing button. Bubuksan nito ang kamera para kumuha o pumili ng litrato ng isda.',
+  'tour_home_live_t': 'Live detection',
+  'tour_home_live_b':
+      'Itutok ang kamera sa isda at makita ang mga kahong Sariwa o Bilasa nang real time.',
+  'tour_home_info_t': 'Impormasyon at Gabay sa Isda',
+  'tour_home_info_b':
+      'Alamin ang 6 na sinusuportahang isda at kung paano kumuha ng malinaw na litrato.',
+  'tour_home_history_t': 'Kasaysayan',
+  'tour_home_history_b':
+      'Dito naka-save ang mga scan mo. Nananatili ito sa telepono mo.',
+  'tour_home_nav_t': 'Paglibot sa app',
+  'tour_home_nav_b':
+      'Gamitin ang bar sa ibaba para lumipat sa Home, Camera, Live detection, at Settings.',
+  'tour_cam_frame_t': 'Ilagay ang isang isda sa frame',
+  'tour_cam_frame_b':
+      'Ilagay ang isang isda sa loob ng mga sulok at ipakita ang mata at hasang nito.',
+  'tour_cam_species_t': 'Tagapili ng uri',
+  'tour_cam_species_b':
+      'Pindutin para piliin ang uri ng isda. Iwanan sa Auto at huhulaan ito ng IsdaAI. Kung pumili ka ng uri pero mukhang ibang isda ito, sasabihin ng IsdaAI.',
+  'tour_cam_flash_t': 'Flash',
+  'tour_cam_flash_b':
+      'Buksan ang ilaw kapag madilim para malinaw ang mata at hasang.',
+  'tour_cam_gallery_t': 'Gallery',
+  'tour_cam_gallery_b':
+      'Pumili ng litratong nasa telepono mo na sa halip na gamitin ang kamera.',
+  'tour_cam_shutter_t': 'Kumuha ng litrato',
+  'tour_cam_shutter_b':
+      'Pindutin para mag-scan. Lalabas ang resulta sa loob ng ilang segundo.',
+  'tour_live_intro_t': 'Live detection',
+  'tour_live_intro_b':
+      'Palaging sinusuri ng kamera ang isda. Berdeng kahon ay Sariwa at pulang kahon ay Bilasa.',
+  'tour_live_status_t': 'Katayuan',
+  'tour_live_status_b':
+      'Ipinapakita kung ilang isda ang natagpuan at ang resultang may pinakamataas na kumpiyansa.',
+  'tour_live_torch_t': 'Ilaw',
+  'tour_live_torch_b': 'Buksan ang ilaw kapag madilim.',
+  'tour_live_stop_t': 'Ihinto',
+  'tour_live_stop_b': 'Pindutin dito para huminto at bumalik.',
+  'tour_res_verdict_t': 'Ang resulta mo',
+  'tour_res_verdict_b':
+      'Ipinapakita kung sariwa o bilasa ang isda, gaano ka-sigurado ang AI, at ang uri.',
+  'tour_res_save_t': 'I-save sa kasaysayan',
+  'tour_res_save_b':
+      'Itago ang scan na ito sa telepono mo para mabuksan mo ito mamaya.',
+  'tour_res_recipe_t': 'Mga ideya sa recipe',
+  'tour_res_recipe_b':
+      'Para sa sariwang isda, kumuha ng mga recipe na tugma sa uri.',
+
   ...historyTl,
 };
